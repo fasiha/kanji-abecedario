@@ -101,11 +101,8 @@ columns.bo = heading2base.bo.map(character2svg)
 columns.en = heading2base.en.map(character2svg);
 
 columns.fr = [ character2svg('丶') ];
-// fr = fr.concat(keepstrokes(character2svg('渋'), range1(8,11)));
 columns.fr = columns.fr.concat(keepstrokes(character2svg('塁'), range1(6, 9)));
 columns.fr = columns.fr.concat('丨,卜,巾,土,大'.split(',').map(character2svg));
-
-// console.log(le.join('\n'))
 
 heading2base.a = '一ニ人山石耳火川力刀女小少皿子母父㐅凵斤丘羽'.split('');
 columns.a = heading2base.a.map(character2svg);
@@ -142,7 +139,7 @@ columns.f[5] = charRangeToSVG('潮', '4-11');
 
 headString('g', '千,舌,重,禾,釆,壬,廷,手,乗,垂,彳,行,升,隹');
 
-headString('h', '牛,告,先,生,朱,矢,矢,牛,winghorse,乍,竹')
+headString('h', '牛,告,先,生,朱,矢,矢,牛,winghorse,乍,竹');
 columns.h[8] = charRangeToSVG('勧', '1-11');
 
 headString('i',
