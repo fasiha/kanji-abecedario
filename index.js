@@ -72,10 +72,10 @@ var charRangeToSVG = (char, str) =>
 var heading2base = {};
 heading2base.le = '冫氵忄丬亻禾米⻖弓犭扌礻衤糸王木言⻊酉食金馬日月'.split('');
 heading2base.ri = '彡刂⻏卩攵頁隹月'.split('');
-heading2base.to = '䒑⺌龴⺈宀艹⺮⺲⺍爫'.split('').concat([ 'human', '⻗' ]);
+heading2base.to = '䒑⺌龴⺈宀艹⺮⺲⺍爫'.split('').concat([ 'every', '⻗' ]);
 heading2base.bo = 'ハ儿心灬月'.split('');
 heading2base.en = '厂广疒⻌廴囗'.split('');
-heading2base.fr = '丶,explosion,丨,卜,巾,土,大'.split(',');
+heading2base.fr = '丶,fun,丨,卜,巾,土,大'.split(',');
 
 var columns = {};
 
@@ -108,8 +108,7 @@ heading2base.a = '一ニ人山石耳火川力刀女小少皿子母父㐅凵斤�
 columns.a = heading2base.a.map(character2svg);
 columns.a[17] = keepstrokes(character2svg('図'), range1(5, 6));
 
-heading2base.b =
-    '口,言,占,加,召,豆,兄,兑,𠂤,㠯,呂,中,虫,middle course,串'.split(',');
+heading2base.b = '口,言,占,加,召,豆,兄,兑,𠂤,㠯,呂,中,虫,noble,串'.split(',');
 columns.b = heading2base.b.map(character2svg);
 columns.b[7] = charRangeToSVG('悦', '4-10');
 columns.b[8] = charRangeToSVG('帥', '1-6');
@@ -133,17 +132,17 @@ function headString(head, str, sep) {
   columns[head] = heading2base[head].map(character2svg);
 }
 
-headString('f', '十,斗,古,固,早,龺,干,vibrato,平,羊,半,ヰ,韋');
+headString('f', '十,斗,古,固,早,龺,干,sing,平,羊,半,ヰ,韋');
 columns.f[7] = charRangeToSVG('謡', '8-17');
 columns.f[5] = charRangeToSVG('潮', '4-11');
 
 headString('g', '千,舌,重,禾,釆,壬,廷,手,乗,垂,彳,行,升,隹');
 
-headString('h', '牛,告,先,生,朱,矢,矢,牛,winghorse,乍,竹');
+headString('h', '牛,告,先,生,朱,矢,矢,牛,recommend,乍,竹');
 columns.h[8] = charRangeToSVG('勧', '1-11');
 
 headString('i',
-           '士,吉,土,赤,圭,孝,者,工,五,並,亜,西,龶,inferior,青,責,王,主,𦍌');
+           '士,吉,土,赤,圭,孝,者,工,五,並,亜,西,龶,careful,青,責,王,主,𦍌');
 columns.i[13] = charRangeToSVG('勤', '1-10');
 columns.i[12] = charRangeToSVG('毒', '1-4');
 columns.i[18] = charRangeToSVG('差', '1-7');
@@ -157,13 +156,13 @@ columns.k[9] = charRangeToSVG('黄', '1-4');
 
 headString(
     'l',
-    '冖,schoolhouse,erito,売,軍,冂,内,同,周,咼,岡,而,禺,月,肖,用,甫,円,冊,再,冓,舟,几,凡');
+    '冖,school,usual,売,軍,冂,内,同,周,咼,岡,而,禺,月,肖,用,甫,円,冊,再,冓,舟,几,凡');
 columns.l[1] = charRangeToSVG('栄', '1-5');
 columns.l[2] = charRangeToSVG('常', '1-8');
 
 headString(
     'm',
-    '亠,towa,京,市,亡,方,文,斉,交,亦,立,咅,音,章,意,fasto,辛,tenno,councel,产');
+    '亠,tall,京,市,亡,方,文,斉,交,亦,立,咅,音,章,意,new,辛,mikado,shizuku,产');
 columns.m[18] = charRangeToSVG('商', '1-6');
 columns.m[17] = charRangeToSVG('帝', '1-6');
 columns.m[15] = charRangeToSVG('新', '1-9');
@@ -173,7 +172,7 @@ columns.m[19] = charRangeToSVG('産', '1-6');
 
 headString(
     'n',
-    '乚,乙,心,必,skyhole,元,酉,尢,匕,化,比,北,旨,兆,七,虍,毛,屯,电,九,卆,丸,㔾,巴,也');
+    '乚,乙,心,必,sky,元,酉,尢,匕,化,比,北,旨,兆,七,虍,毛,屯,电,九,卆,丸,㔾,巴,也');
 columns.n[4] = charRangeToSVG('空', '1-5');
 columns.n[0] = charRangeToSVG('札', '5');
 columns.n[18] = charRangeToSVG('竜', '6-10');
@@ -182,7 +181,7 @@ columns.n[22] = charRangeToSVG('厄', '3-4');
 headString('o', '止,歩,延,卸,正,𤴓,疋,足,走,是');
 columns.o[5] = charRangeToSVG('定', '4-8')
 
-headString('p', '水,永,求,farry,𧘇,㐮,衣,mourn,長,辰,氏,氐,民,以,outside,卬')
+headString('p', '水,永,求,park,𧘇,㐮,衣,mourning,長,辰,氏,氐,民,以,detain,卬')
 columns.p[3] = charRangeToSVG('園', '9-12');
 columns.p[7] = charRangeToSVG('喪', '9-12');
 columns.p[14] = charRangeToSVG('留', '1-5');
@@ -198,20 +197,23 @@ columns.q[13] = charRangeToSVG('慈', '4-9');
 headString('r', '又,取,叔,隻,祭,殳,圣,奴,反,支,皮');
 
 function fixer(head, key, kanji, rangestr) {
+  if (heading2base[head].indexOf(key) < 0) {
+    throw new Error(`${head} ${key}`);
+  }
   columns[head][heading2base[head].indexOf(key)] =
       charRangeToSVG(kanji, rangestr);
 }
 
 headString(
     's',
-    '奐,免,勹,勺,句,旬,dry,勿,万,昜,豕,家,㒸,貇,欠,㳄,夕,舛,名,歹,列,久,夂,复,夋,各');
-fixer('s', 'dry', '渇', '4-11');
+    '奐,免,勹,勺,句,旬,thirst,勿,万,昜,豕,家,㒸,貇,欠,㳄,夕,舛,名,歹,列,久,夂,复,夋,各');
+fixer('s', 'thirst', '渇', '4-11');
 fixer('s', '㒸', '遂', '1-9');
 fixer('s', '貇', '懇', '1-13');
 fixer('s', '夋', '唆', '4-10');
 
-headString('t', '癶,𠆢,介,余,金,舎,食,令,今,合,㑒,俞,侖,八,公,㕣,谷,stool');
-fixer('t', 'stool', '具', '6-8');
+headString('t', '癶,𠆢,介,余,金,舎,食,令,今,合,㑒,俞,侖,八,公,㕣,谷,tool');
+fixer('t', 'tool', '具', '6-8');
 fixer('t', '𠆢', '会', '1-2');
 fixer('t', '㑒', '険', '4-11');
 fixer('t', '俞', '諭', '8-16');
@@ -221,9 +223,9 @@ headString('u', '尸,辟,尺,戸,扁,倉');
 
 headString(
     'v',
-    '右,有,布,real,stable,友,史,更,大,莫,犬,尞,天,关,夫,𦰩,夬,央,夹,龹,𡗗,丰');
-fixer('v', 'real', '在', '1-3');
-fixer('v', 'stable', '左', '1-2');
+    '右,有,布,exist,left,友,史,更,大,莫,犬,尞,天,关,夫,𦰩,夬,央,夹,龹,𡗗,丰');
+fixer('v', 'exist', '在', '1-3');
+fixer('v', 'left', '左', '1-2');
 fixer('v', '尞', '僚', '3-14');
 fixer('v', '𦰩', '嘆', '4-13');
 fixer('v', '夹', '狭', '4-9');
@@ -231,35 +233,50 @@ fixer('v', '龹', '券', '1-6');
 fixer('v', '𡗗', '春', '1-5');
 fixer('v', '丰', '邦', '1-4');
 
-headString('w', '弋,spear,代,戈,𢦏,戠,我,義,戊,戌,成,㦮');
-fixer('w', 'spear', '武', '1-2,7-8');
+headString('w', '弋,soldier,代,戈,𢦏,戠,我,義,戊,戌,成,㦮');
+fixer('w', 'soldier', '武', '1-2,7-8');
 fixer('w', '𢦏', '裁', '1-3,10-12');
 fixer('w', '㦮', '浅', '4-9');
 
-headString('x', '彐,翟,douse,帚,录,肀,隶,聿,兼,君,争');
-fixer('x', 'douse', '侵', '3-9');
+headString('x', '彐,翟,soak,帚,录,肀,隶,聿,兼,君,争');
+fixer('x', 'soak', '侵', '3-9');
 fixer('x', '翟', '躍', '8-21');
 fixer('x', '录', '緑', '7-14');
 fixer('x', '肀', '妻', '2-5');
 
-headString('y', '匚,区,匹,巨,臣,oversee,臤,馬,己,包,弓,弔,弗,丂,考,与,呉');
-fixer('y', 'oversee', '監', '1-10');
+headString('y', '匚,区,匹,巨,臣,supervise,臤,馬,己,包,弓,弔,弗,丂,考,与,呉');
+fixer('y', 'supervise', '監', '1-10');
 fixer('y', '臤', '堅', '1-9');
 fixer('y', '丂', '号', '4-5')
 
 headString(
     'z',
-    '𠃊,rank,非,不,negate,片,zinc,乃,及,𠃌,之,為,入,屰,敢,身,pretty,longsword,敝,鬲,世,trouble');
-fixer('z', 'rank', '印', '1-4');
-fixer('z', 'negate', '無', '1-8');
-fixer('z', 'zinc', '盾', '1-2');
-fixer('z', 'pretty', '薦', '4-10');
-fixer('z', 'longsword', '帰', '1-2');
-fixer('z', 'trouble', '憂', '1-8');
+    '𠃊,seal,非,不,not,片,queen,乃,及,𠃌,之,為,入,屰,敢,身,beautiful,return,敝,鬲,世,anxious');
+fixer('z', 'seal', '印', '1-4');
+fixer('z', 'not', '無', '1-8');
+fixer('z', 'queen', '盾', '1-2');
+fixer('z', 'beautiful', '薦', '4-10');
+fixer('z', 'return', '帰', '1-2');
+fixer('z', 'anxious', '憂', '1-8');
 fixer('z', '𠃊', '直', '8');
 fixer('z', '𠃌', '司', '1');
 fixer('z', '屰', '逆', '1-6');
 
+function fmap(f, ...args) {
+  const N = Math.max(...args.map(v => v.length));
+  let arr = Array(N);
+  for (let i = 0; i < N; i++) {
+    arr[i] = f.apply(null, args.map(v => v[i]));
+  }
+  return arr;
+}
+
+var printout = columnsHeadings
+                   .map((h, i) => h + '<br>' +
+                                  fmap((svg, name) => name + ':' + svg,
+                                       columns[h] || [], heading2base[h] || [])
+                                      .join(' '))
+                   .join('<br>');
 fs.writeFileSync('index.html',
                  `<!doctype html>
 <meta charset="utf-8">
@@ -268,5 +285,35 @@ svg {
     border: 1px solid black;
 }
 </style>
-${columnsHeadings.map(h=>h+'<br>'+(columns[h] || []).join(' ')).join('<br>')}
-`)
+${printout}
+`);
+fs.writeFileSync('dump.json', JSON.stringify({heading2base, columns}));
+
+console.log(fmap((col, row) => `${col}: ${row.join(', ')}`,
+                 Object.keys(heading2base), Object.values(heading2base))
+                .join('\n'));
+
+var sources = flatten1(
+    fs.readFileSync('abc-origins.md', 'utf8').trim().split('\n').map(line => {
+      let chunks = line.split(/\s+/);
+      let head = chunks.shift();
+      return flatten1(chunks.map(chunk => {
+               let [_, col, nums] = chunk.match(/^([a-zA-Z]+)([0-9-]+)/);
+               return rangesStringToArr(nums).map(n => [col, n]);
+             }))
+          .map(v => v.concat(head));
+    }));
+// var {heading2base, columns} = JSON.parse(fs.readFileSync('dump.json',
+// 'utf8'));
+var sourcesTable = flatten1(fmap(
+    (col, rows) =>
+        rows.map((s, i) => ({col, row : i + 1, printable : s, sources : []})),
+    Object.keys(heading2base), Object.values(heading2base)));
+var sourcesMap = new Map(sourcesTable.map(o => [`${o.col}${o.row}`, o]));
+sources.forEach(
+    ([ col, row, source ]) =>
+        sourcesMap.get(`${col.toLowerCase()}${row}`).sources.push(source));
+sourcesTable = Array.from(sourcesMap.values());
+fs.writeFileSync('sources.json', JSON.stringify({sourcesTable}));
+fs.writeFileSync('sources.js', JSON.stringify({sourcesTable},null,1));
+// console.log(JSON.stringify({sourcesTable},null,1))
