@@ -151,7 +151,7 @@ headString('j', '木,釆,喿,林,麻,本,未,末,朮,米,束,東');
 columns.j[2] = charRangeToSVG('操', '4-16')
 
 headString('k', '卉,开,廾,廿,革,甘,某,其,井,龷,昔,共');
-columns.k[2] = charRangeToSVG('刑', '1-4');
+columns.k[1] = charRangeToSVG('刑', '1-4');
 columns.k[9] = charRangeToSVG('黄', '1-4');
 
 headString(
@@ -206,7 +206,7 @@ function fixer(head, key, kanji, rangestr) {
 
 headString(
     's',
-    '奐,免,勹,勺,句,旬,thirst,勿,万,昜,豕,家,㒸,貇,欠,㳄,夕,舛,名,歹,列,久,夂,复,夋,各');
+    '奐,免,勹,勺,句,旬,thirst,勿,万,昜,豕,家,㒸,貇,欠,次,夕,舛,名,歹,列,久,夂,复,夋,各');
 fixer('s', 'thirst', '渇', '4-11');
 fixer('s', '㒸', '遂', '1-9');
 fixer('s', '貇', '懇', '1-13');
