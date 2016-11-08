@@ -4,17 +4,35 @@ CREATE TABLE people (
     name text,
     age numeric CONSTRAINT positive_age CHECK (age >= 0)
 );
+DROP TABLE nicks CASCADE;
+CREATE TABLE nicks(
+  id serial REFERENCES people(id),
+  nick text NOT NULL
+);
 
 insert into
   people
   (name, age)
 values
-  ('Emmy', 33),
-  ('Ally', 33),
-  ('Ammy', 33),
-  ('Bazi', 330);
-SELECT * FROM people;
+  ('Emily', 33),
+  ('Alistair', 33),
+  ('Cthu''lhu', 9999),
+  ($$Chi'
 
+  - - - !
+    ' ' ' ' ' ""nggiz$$, 129);
+insert into
+   nicks
+values
+ ((select id from people where name='Emily'), 'Emmy'),
+ ((select id from people where name='Emily'), 'Edogg'),
+ ((select id from people where name='Alistair'), 'Ally');
+SELECT * FROM people left join nicks on people.id = nicks.id;
+
+CREATE TYPE kanjiabcgroup AS ENUM
+ ('le', 'ri', 'to', 'bo', 'en', 'fr', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+  'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
+  'x', 'y', 'z', 'custom');
 
 DROP TABLE characters CASCADE;
 CREATE TABLE characters(
@@ -36,10 +54,24 @@ CREATE TABLE characters(
   -- let it be a unique English keyword.
   printable text NOT NULL UNIQUE,
 
-  numstrokes integer NOT NULL CHECK (numstrokes > 0),
-  kanken numeric NULL,
+  -- numstrokes integer NOT NULL CHECK (numstrokes > 0),
+  kanken real,
   CONSTRAINT kanken_sanity CHECK (kanken >= 0 and kanken <= 10)
 );
+
+COPY characters(id, svg, isprimitive, iskanji, printable, kanken)
+ from '/Users/fasih/Dropbox/MobileOrg/kanji-abc/table/char.tsv';
+
+CREATE TABLE IF NOT EXISTS kanjiabc();
+DROP TABLE kanjiabc CASCADE;
+CREATE TABLE kanjiabc(
+  character serial REFERENCES characters(id) ON DELETE CASCADE,
+  abcgroup kanjiabcgroup,
+  abcnum integer
+);
+
+COPY kanjiabc(character, abcgroup, abcnum)
+ from '/Users/fasih/Dropbox/MobileOrg/kanji-abc/table/abcs.tsv';
 
 CREATE TABLE IF NOT EXISTS authors();
 DROP TABLE authors CASCADE;
@@ -52,32 +84,34 @@ CREATE TABLE IF NOT EXISTS decompositions();
 DROP TABLE decompositions CASCADE;
 CREATE TABLE decompositions(
   id serial unique primary key,
-  target serial REFERENCES characters (id) ON DELETE CASCADE,
+  character serial REFERENCES characters (id) ON DELETE CASCADE,
   creator serial REFERENCES authors (id) ON DELETE RESTRICT,
-  unique (id, target)
+  unique (id, character)
 );
 
 CREATE TABLE IF NOT EXISTS names_for_chars();
 DROP TABLE names_for_chars CASCADE;
 CREATE TABLE names_for_chars(
-  target serial REFERENCES characters (id) ON DELETE CASCADE,
+  character serial REFERENCES characters (id) ON DELETE CASCADE,
   name text NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS favorites();
 DROP TABLE favorites  CASCADE;
 CREATE TABLE favorites(
-  target serial REFERENCES decompositions (id) ON DELETE CASCADE,
+  character serial REFERENCES decompositions (id) ON DELETE CASCADE,
   author serial REFERENCES authors (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS decomposeds();
 DROP TABLE decomposeds CASCADE;
 CREATE TABLE decomposeds(
-  target serial,
-  targetchar serial,
-  foreign key (target, targetchar) REFERENCES decompositions (id, target) ON DELETE CASCADE,
+  decomposition serial,
+  character serial,
+  foreign key (decomposition, character)
+   REFERENCES decompositions (id, character)
+   ON DELETE CASCADE,
 
   item serial REFERENCES characters (id) ON DELETE CASCADE,
-  CONSTRAINT acyclic CHECK (targetchar != item)
+  CONSTRAINT acyclic CHECK (character != item)
 );

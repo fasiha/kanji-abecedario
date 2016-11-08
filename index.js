@@ -15,8 +15,12 @@ function filename2svg(fname, msg) {
   try {
     s = fs.readFileSync(fname, 'utf8');
   } catch (e) {
-    console.log(`trying to read ${fname} (message: ${msg})`);
-    console.log('error', e.message);
+    // this is useful when building the dataset but not useful when generating
+    // outputs
+    if (false) {
+      console.log(`trying to read ${fname} (message: ${msg})`);
+      console.log('error', e.message);
+    }
     return null;
   }
   return cleansvg(s);
@@ -37,7 +41,6 @@ function keepstrokes(svg, strokes) {
       .filter(s => !s.match(strokere) || s.match(re))
       .join('\n');
 }
-console.log(keepstrokes(character2svg("踊"), [ 1, 2 ]));
 
 // from http://stackoverflow.com/a/8273091/500207
 function range(start, stop, step) {
@@ -289,9 +292,40 @@ ${printout}
 `);
 fs.writeFileSync('dump.json', JSON.stringify({heading2base, columns}));
 
-console.log(fmap((col, row) => `${col}: ${row.join(', ')}`,
-                 Object.keys(heading2base), Object.values(heading2base))
-                .join('\n'));
+var fmapobj = (f, o) => fmap(f, Object.keys(o), Object.values(o));
+
+var kanken = JSON.parse(fs.readFileSync('data/kanken.json', 'utf8'));
+var kankenKanji = new Set(flatten1(Object.values(kanken)).join('').split(''));
+var kanji2kanken =
+    new Map(flatten1(fmapobj((k, v) => v.split('').map(v => [v, +k]), kanken)));
+
+var insert2 = flatten1(fmapobj((col, vec) => vec.map((svg, i) => {
+  const printable = heading2base[col][i];
+  const kanken = kanji2kanken.get(printable);
+  const iskanji = kanken ? 'TRUE' : 'FALSE';
+  const kanken2 = kanken || '\\N';
+  return [
+    svg.replace(/\n/g, '\\n').replace(/\t/g, '\\t'), 'TRUE', iskanji, printable,
+    kanken2
+  ].join('\t');
+}),
+                               columns));
+insert2 = Array.from(new Set(insert2));
+insert2 = insert2.map((s, i) => `${i + 1}\t${s}`);
+// id svg isprimitive iskanji printable kanken
+fs.writeFileSync('char.tsv', insert2.join('\n'));
+
+var insert2Key = new Map(insert2.map((s, i) => [s.split('\t')[4], i]));
+var insert1 = flatten1(fmapobj(
+    (col, vec) =>
+        vec.map((printable,
+                 i) => [insert2Key.get(printable) + 1, col, i + 1].join('\t')),
+    heading2base));
+fs.writeFileSync('abcs.tsv', insert1.join('\n'));
+
+var tranposeStr = (fmap((col, row) => `${col}: ${row.join(', ')}`,
+                        Object.keys(heading2base), Object.values(heading2base))
+                       .join('\n'));
 
 var sources = flatten1(
     fs.readFileSync('abc-origins.md', 'utf8').trim().split('\n').map(line => {
@@ -315,5 +349,9 @@ sources.forEach(
         sourcesMap.get(`${col.toLowerCase()}${row}`).sources.push(source));
 sourcesTable = Array.from(sourcesMap.values());
 fs.writeFileSync('sources.json', JSON.stringify({sourcesTable}));
-fs.writeFileSync('sources.js', JSON.stringify({sourcesTable},null,1));
+fs.writeFileSync('sources.js', JSON.stringify({sourcesTable}, null, 1));
 // console.log(JSON.stringify({sourcesTable},null,1))
+
+
+console.log(`Next run:
+  $ cat db.sql | psql test`);
