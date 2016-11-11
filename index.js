@@ -299,6 +299,9 @@ var kankenKanji = new Set(flatten1(Object.values(kanken)).join('').split(''));
 var kanji2kanken =
     new Map(flatten1(fmapobj((k, v) => v.split('').map(v => [v, +k]), kanken)));
 
+/* For primitives:
+// svg isprimitive iskanji printable kanken
+*/
 var insert2 = flatten1(fmapobj((col, vec) => vec.map((svg, i) => {
   const printable = heading2base[col][i];
   const kanken = kanji2kanken.get(printable);
@@ -311,10 +314,33 @@ var insert2 = flatten1(fmapobj((col, vec) => vec.map((svg, i) => {
 }),
                                columns));
 insert2 = Array.from(new Set(insert2));
-insert2 = insert2.map((s, i) => `${i + 1}\t${s}`);
-// id svg isprimitive iskanji printable kanken
+// insert2 = insert2.map((s, i) => `${i + 1}\t${s}`);
 fs.writeFileSync('char.tsv', insert2.join('\n'));
 
+/* For non-primitive kanken kanji.
+// isprimitive iskanji printable kanken
+*/
+function nonprimchar(fname, kanjis) {
+  fs.writeFileSync(
+      fname,
+      Array.from(kanjis)
+          .map(
+              (k, i) => ['FALSE', 'TRUE', k, kanji2kanken.get(k) || '\\N'].join(
+                  '\t'))
+          .join('\n'));
+}
+var setint = (set1, set2) => new Set([...set1 ].filter(x => set2.has(x)));
+var setdiff = (set1, set2) => new Set([...set1 ].filter(x => !set2.has(x)));
+
+var primitivesSet = new Set(flatten1(Object.values(heading2base)));
+nonprimchar('nonprimchar.tsv', setdiff(kankenKanji, primitivesSet));
+var jinmeiyou = fs.readFileSync('data/jinmeiyou.txt', 'utf8').trim().split('');
+nonprimchar('jinmeiyou.tsv',
+            setdiff(setdiff(new Set(jinmeiyou), primitivesSet), kankenKanji));
+
+/* For Kanji ABC info:
+// id of character, abcgroup, abcnum
+*/
 var insert2Key = new Map(insert2.map((s, i) => [s.split('\t')[4], i]));
 var insert1 = flatten1(fmapobj(
     (col, vec) =>
@@ -323,6 +349,7 @@ var insert1 = flatten1(fmapobj(
     heading2base));
 fs.writeFileSync('abcs.tsv', insert1.join('\n'));
 
+/* Misc stuff */
 var tranposeStr = (fmap((col, row) => `${col}: ${row.join(', ')}`,
                         Object.keys(heading2base), Object.values(heading2base))
                        .join('\n'));
@@ -349,9 +376,7 @@ sources.forEach(
         sourcesMap.get(`${col.toLowerCase()}${row}`).sources.push(source));
 sourcesTable = Array.from(sourcesMap.values());
 fs.writeFileSync('sources.json', JSON.stringify({sourcesTable}));
-fs.writeFileSync('sources.js', JSON.stringify({sourcesTable}, null, 1));
-// console.log(JSON.stringify({sourcesTable},null,1))
 
-
-console.log(`Next run:
+console.log(
+    `Next run:
   $ cat db.sql | psql test`);

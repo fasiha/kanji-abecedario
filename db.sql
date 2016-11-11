@@ -6,7 +6,7 @@ CREATE TABLE people (
 );
 DROP TABLE nicks CASCADE;
 CREATE TABLE nicks(
-  id serial REFERENCES people(id),
+  id integer REFERENCES people(id),
   nick text NOT NULL
 );
 
@@ -55,17 +55,21 @@ CREATE TABLE characters(
   printable text NOT NULL UNIQUE,
 
   -- numstrokes integer NOT NULL CHECK (numstrokes > 0),
-  kanken real,
+  kanken real NULL,
   CONSTRAINT kanken_sanity CHECK (kanken >= 0 and kanken <= 10)
 );
 
-COPY characters(id, svg, isprimitive, iskanji, printable, kanken)
- from '/Users/fasih/Dropbox/MobileOrg/kanji-abc/table/char.tsv';
+COPY characters(svg, isprimitive, iskanji, printable, kanken)
+  from '/Users/fasih/Dropbox/MobileOrg/kanji-abc/table/char.tsv';
+COPY characters(isprimitive, iskanji, printable, kanken)
+  from '/Users/fasih/Dropbox/MobileOrg/kanji-abc/table/nonprimchar.tsv';
+COPY characters(isprimitive, iskanji, printable, kanken)
+  from '/Users/fasih/Dropbox/MobileOrg/kanji-abc/table/jinmeiyou.tsv';
 
 CREATE TABLE IF NOT EXISTS kanjiabc();
 DROP TABLE kanjiabc CASCADE;
 CREATE TABLE kanjiabc(
-  character serial REFERENCES characters(id) ON DELETE CASCADE,
+  character integer REFERENCES characters(id) ON DELETE CASCADE,
   abcgroup kanjiabcgroup,
   abcnum integer
 );
@@ -84,23 +88,23 @@ CREATE TABLE IF NOT EXISTS decompositions();
 DROP TABLE decompositions CASCADE;
 CREATE TABLE decompositions(
   id serial unique primary key,
-  character serial REFERENCES characters (id) ON DELETE CASCADE,
-  creator serial REFERENCES authors (id) ON DELETE RESTRICT,
+  character integer REFERENCES characters (id) ON DELETE CASCADE,
+  creator integer REFERENCES authors (id) ON DELETE RESTRICT,
   unique (id, character)
 );
 
 CREATE TABLE IF NOT EXISTS names_for_chars();
 DROP TABLE names_for_chars CASCADE;
 CREATE TABLE names_for_chars(
-  character serial REFERENCES characters (id) ON DELETE CASCADE,
+  character integer REFERENCES characters (id) ON DELETE CASCADE,
   name text NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS favorites();
 DROP TABLE favorites  CASCADE;
 CREATE TABLE favorites(
-  character serial REFERENCES decompositions (id) ON DELETE CASCADE,
-  author serial REFERENCES authors (id) ON DELETE CASCADE
+  character integer REFERENCES decompositions (id) ON DELETE CASCADE,
+  author integer REFERENCES authors (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS decomposeds();
@@ -112,6 +116,9 @@ CREATE TABLE decomposeds(
    REFERENCES decompositions (id, character)
    ON DELETE CASCADE,
 
-  item serial REFERENCES characters (id) ON DELETE CASCADE,
+  item integer REFERENCES characters (id) ON DELETE CASCADE,
   CONSTRAINT acyclic CHECK (character != item)
 );
+
+-- select primitives -- SELECT printable FROM characters WHERE isprimitive = TRUE;
+-- select kanji -- SELECT printable, kanken FROM characters WHERE isprimitive = FALSE ORDER BY kanken DESC NULLS LAST;
