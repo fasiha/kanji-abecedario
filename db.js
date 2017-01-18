@@ -19,11 +19,35 @@ function myhash(string, callback) {
                 });
 }
 
+// DATA
+var stringSetDiff = (a, b) => {
+  var aset = new Set(a.split(''));
+  return b.split('').filter(s => !aset.has(s)).join('');
+};
+var kanken = JSON.parse(fs.readFileSync('data/kanken.json', 'utf8'));
+var jinmeiyou =
+    stringSetDiff(Object.values(kanken).join(''),
+                  fs.readFileSync('data/jinmeiyou.txt', 'utf8').trim());
+kanken['0'] = jinmeiyou;
+var allKanji = Object.keys(kanken)
+                   .sort((a, b) => (+b) - (+a)) // descending (10 first, 9, ...)
+                   .map(k => kanken[k])
+                   .reduce((prev, curr) => prev + curr, '');
+// allKanji contains a giant string containing jouyou and jinmeiyou kanji.
+// It might contain some primitives, which we load next:
+var sources = JSON.parse(fs.readFileSync('data/sources.json', 'utf8'));
+
+var alphanumericToTarget = {};
+sources.sourcesTable.forEach(({col, row, printable}) => {
+  var key = col + row;
+  alphanumericToTarget[key.toUpperCase()] = printable;
+  alphanumericToTarget[key.toLowerCase()] = printable;
+});
+
+// DB
+
 var db = new sqlite3.Database(':memory:');
-
 var ready = false;
-
-var sources = JSON.parse(fs.readFileSync('sources.json', 'utf8'));
 
 db.parallelize(() => {
   db.serialize(() => {
@@ -47,16 +71,23 @@ db.parallelize(() => {
   ready = true;
 });
 
+// SERVICES
+
 function depsToString(depsArray) {
+  // Ignore whitespace-only entries, replace ABC123 codes with our stringy
+  // targets, and sort.
   return Array.from(new Set(depsArray))
       .filter(s => !s.match(/^\s*$/))
+      .map(s => alphanumericToTarget[s.trim()] || s.trim())
       .sort()
       .join(',');
 }
 
 function record(target, user, depsArray, cb) {
-  myhash(user, (_, hash) => db.run(`INSERT OR REPLACE INTO deps VALUES (${target
-                                   }, ${hash}, ${depsToString(depsArray)})`,
+  myhash(user, (_, hash) => db.run(`INSERT OR REPLACE INTO deps VALUES (
+    "${target}",
+    "${hash}",
+    "${depsToString(depsArray)}")`,
                                    cb));
 }
 
