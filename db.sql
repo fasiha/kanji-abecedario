@@ -29,6 +29,7 @@ values
  ((select id from people where name='Alistair'), 'Ally');
 SELECT * FROM people left join nicks on people.id = nicks.id;
 
+DROP TYPE IF EXISTS kanjiabcgroup CASCADE;
 CREATE TYPE kanjiabcgroup AS ENUM
  ('le', 'ri', 'to', 'bo', 'en', 'fr', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
   'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
