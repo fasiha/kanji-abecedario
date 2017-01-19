@@ -61,11 +61,10 @@ db.parallelize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS deps (
           target TEXT NOT NULL,
           user TEXT NOT NULL,
-          dependencies TEXT NOT NULL,
-          CHECK(dependencies <> ''),
-          FOREIGN KEY(target) REFERENCES targets(target))`);
-    db.run(
-        `CREATE UNIQUE INDEX IF NOT EXISTS targetUser ON deps (target, user)`);
+          dependency TEXT NOT NULL,
+          FOREIGN KEY(target) REFERENCES targets(target),
+          FOREIGN KEY(dependency) REFERENCES targets(target))`);
+    db.run(`CREATE INDEX IF NOT EXISTS targetUser ON deps (target, user)`);
   });
 
   ready = true;
@@ -73,22 +72,26 @@ db.parallelize(() => {
 
 // SERVICES
 
-function depsToString(depsArray) {
+function cleanDeps(depsArray) {
   // Ignore whitespace-only entries, replace ABC123 codes with our stringy
   // targets, and sort.
   return Array.from(new Set(depsArray))
       .filter(s => !s.match(/^\s*$/))
       .map(s => alphanumericToTarget[s.trim()] || s.trim())
-      .sort()
-      .join(',');
+      .sort();
 }
 
 function record(target, user, depsArray, cb) {
-  myhash(user, (_, hash) => db.run(`INSERT OR REPLACE INTO deps VALUES (
-    "${target}",
-    "${hash}",
-    "${depsToString(depsArray)}")`,
-                                   cb));
+  myhash(user, (_, hash) => {
+    db.serialize(() => {
+      db.run(`DELETE FROM deps WHERE target = ? AND user = ?`,
+             [ target, hash ]);
+      var statement =
+          db.prepare(`INSERT INTO deps VALUES (?, "${hash}", ?)`);
+      cleanDeps(depsArray).forEach(d => statement.run([ target, d ]));
+      cb();
+    });
+  });
 }
 
 module.exports = {

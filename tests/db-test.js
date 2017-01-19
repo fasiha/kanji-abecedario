@@ -8,10 +8,9 @@ var printAllDepsCallback =
 tape("testing", test => {
 
   db.db.serialize(() => {
-    db.record("一", 'test1', [ 'L2', 'e3', 'en11' ], printAllDepsCallback);
-    // db.record("一", 'test1', [ 'A1' ]);
-
-  })
-  // db.record("一", "test1", ['一']);
+    db.record("一", 'test1', [ 'L2', 'e3', 'en1' ], printAllDepsCallback);
+    db.record("一", 'test1', [ 'L3' ], printAllDepsCallback);
+    db.record("一", 'test2', [ 'L1' ], printAllDepsCallback);
+  });
   test.end();
 })
