@@ -46,6 +46,7 @@ sources.sourcesTable.forEach(({col, row, printable}) => {
 
 // DB
 
+// var db = new sqlite3.Database('foo.db');
 var db = new sqlite3.Database(':memory:');
 var ready = false;
 
@@ -53,7 +54,10 @@ db.parallelize(() => {
   db.serialize(() => {
     db.run(
         `CREATE TABLE IF NOT EXISTS targets (target TEXT PRIMARY KEY NOT NULL)`);
-    var s = sources.sourcesTable.map(o => `("${o.printable}")`).join(',');
+    var s = sources.sourcesTable.map(o => o.printable)
+                .concat(allKanji.split(''))
+                .map(s => `("${s}")`)
+                .join(',');
     db.run(`INSERT OR IGNORE INTO targets VALUES ${s}`);
   });
 
@@ -86,16 +90,39 @@ function record(target, user, depsArray, cb) {
     db.serialize(() => {
       db.run(`DELETE FROM deps WHERE target = ? AND user = ?`,
              [ target, hash ]);
-      var statement =
-          db.prepare(`INSERT INTO deps VALUES (?, "${hash}", ?)`);
+      var statement = db.prepare(`INSERT INTO deps VALUES (?, "${hash}", ?)`);
       cleanDeps(depsArray).forEach(d => statement.run([ target, d ]));
-      cb();
+      if (cb) {
+        cb()
+      };
     });
   });
+}
+
+function depsFor(target, cb) {
+  db.all(`WITH t
+       AS (SELECT group_concat(deps.dependency, ",,,") AS s
+           FROM   deps
+           WHERE  deps.target = ?
+           GROUP  BY deps.user)
+      SELECT t.s,
+             count(t.s) AS c
+      FROM   t
+      GROUP  BY t.s
+      ORDER  BY c DESC`,
+         [ target ], cb);
+}
+
+function firstNoDeps(cb) {
+  db.all(
+      `SELECT target FROM targets WHERE target NOT IN (SELECT DISTINCT target FROM deps) LIMIT 1`,
+      cb);
 }
 
 module.exports = {
   db : db,
   record : record,
+  depsFor : depsFor,
+  firstNoDeps : firstNoDeps,
   cleanup : (cb) => db.close(cb),
 };

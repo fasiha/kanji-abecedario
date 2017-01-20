@@ -2,26 +2,33 @@
 var tape = require("tape");
 var db = require("../db.js");
 
-var printAllDepsCallback =
-    () => { db.db.all('select * from deps', (e, r) => console.log(e, r)); };
-
+var printAllDepsCallback =() => { db.db.all('select * from deps', (e, r) => console.log(e, r)); };
 tape("testing", test => {
 
   db.db.serialize(() => {
-    // db.record("一", 'test1', [ 'L3', 'to1' ], printAllDepsCallback);
-    db.record("一", 'test1', [ 'L2', 'e3', 'en1' ], printAllDepsCallback);
-    db.record("一", 'test3', [ 'L2', 'e3', 'en1' ], printAllDepsCallback);
-    db.record("一", 'test2', [ 'L1' ], printAllDepsCallback);
-    db.record("西", 'test2', [ 'A1', 'A2' ], printAllDepsCallback);
+    db.firstNoDeps((e, r) => console.log("firstNoDeps", e, r));
+    db.record("冫", 'test1', [ '卜' ], null);
+    db.firstNoDeps((e, r) => console.log("firstNoDeps", e, r));
+
+    db.record("冫", 'test3', [ '卜', '巾' ], null);
+    db.record("冫", 'test2', [ '卜' ], null);
+
+    db.depsFor('冫', (e, r) => console.log('depsFor', e, r));
+
+    db.record("氵", 'test2', [ 'A1', 'A2' ], null);
+
   });
   test.end();
-})
+});
 
 /*
+# How to get all decompositions for a given target, ranked by popularity:
 
 Check it:
 
-// WITH t as (SELECT  group_concat(deps.dependency,",,,") as s FROM deps WHERE deps.target = '一' GROUP BY deps.user) select t.s, count(t.s) as c from t group by t.s order by c desc;
+// WITH t as (SELECT  group_concat(deps.dependency,",,,") as s FROM deps WHERE
+deps.target = '一' GROUP BY deps.user) select t.s, count(t.s) as c from t group
+by t.s order by c desc;
 
 Formatted:
 
@@ -41,26 +48,13 @@ ORDER  BY c DESC;
 school,,,厂,,,矛|2
 冖|1
 
+# How to get the first N=1 target(s) without ANY dependency data, ordered by
+rowid:
 
-CREATE TABLE recipes (
-      meal TEXT,
-      ingredient TEXT);
+SELECT target FROM targets WHERE target NOT IN (SELECT DISTINCT target FROM
+deps) LIMIT 1;
 
-INSERT INTO recipes VALUES
-  ("tandoori chicken","chicken"), ("tandoori chicken","spices"),
-  ("mom's chicken","chicken"), ("mom's chicken","spices"),
-  ("spicy chicken","chicken"), ("spicy chicken","spices"),
-  ("parmesan chicken","chicken"), ("parmesan chicken","cheese"), ("parmesan chicken","bread"),
-  ("breaded chicken","chicken"), ("breaded chicken","cheese"), ("breaded chicken","bread"),
-  ("plain chicken","chicken");
+#
 
-  WITH t
-       AS (SELECT group_concat(recipes.ingredient, ",,,") AS ingredients
-           FROM   recipes
-           GROUP  BY recipes.meal)
-  SELECT t.ingredients,
-         count(t.ingredients) AS cnt
-  FROM   t
-  GROUP  BY t.ingredients
-  ORDER  BY cnt DESC;
+
  */
