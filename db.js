@@ -10,13 +10,13 @@ var keylen = 32; // bytes
 var digest = "sha256";
 
 function myhash(string, callback) {
-  crypto.pbkdf2(string, process.env.SALT, iterations, keylen, digest,
-                (err, key) => {
-                  if (err) {
-                    throw err;
-                  }
-                  callback(err, Buffer(key, 'binary').toString('base64'));
-                });
+  crypto.pbkdf2(
+      string, process.env.SALT, iterations, keylen, digest, (err, key) => {
+        if (err) {
+          throw err;
+        }
+        callback(err, "hash1:" + Buffer(key, 'binary').toString('base64'));
+      });
 }
 
 // DATA
@@ -46,7 +46,7 @@ sources.sourcesTable.forEach(({col, row, printable}) => {
 
 // DB
 
-var db = new sqlite3.Database('foo.db');
+var db = new sqlite3.Database('deps.db');
 // var db = new sqlite3.Database(':memory:');
 var ready = false;
 
@@ -90,8 +90,8 @@ function record(target, user, depsArray, cb) {
     db.serialize(() => {
       db.run(`DELETE FROM deps WHERE target = ? AND user = ?`,
              [ target, hash ]);
-      var statement = db.prepare(`INSERT INTO deps VALUES (?, "${hash}", ?)`);
-      cleanDeps(depsArray).forEach(d => statement.run([ target, d ]));
+      var statement = db.prepare(`INSERT INTO deps VALUES (?, ?, ?)`);
+      cleanDeps(depsArray).forEach(d => statement.run([ target, hash, d ]));
       if (cb) {
         cb()
       };
@@ -113,6 +113,16 @@ function depsFor(target, cb) {
           GROUP  BY sortedDeps
           ORDER  BY cnt DESC;`,
          [ target ], cb);
+}
+
+function userDeps(target, user, cb) {
+  myhash(user, (_, hash) => {
+    db.all(`SELECT deps.dependency
+            FROM deps
+            WHERE deps.target = ? AND deps.user = ?
+            ORDER BY deps.dependency`,
+           [ target, hash ], cb);
+  });
 }
 
 function firstNoDeps(cb) {
