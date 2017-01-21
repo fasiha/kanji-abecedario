@@ -127,7 +127,7 @@ function userDeps(target, user, cb) {
 
 function firstNoDeps(cb) {
   db.all(
-      `SELECT target FROM targets WHERE target NOT IN (SELECT DISTINCT target FROM deps) LIMIT 1`,
+      `SELECT target, rowid FROM targets WHERE target NOT IN (SELECT DISTINCT target FROM deps) LIMIT 1`,
       cb);
 }
 

@@ -8682,23 +8682,42 @@ var _elm_lang$http$Http$stringPart = _elm_lang$http$Http$StringPart;
 var _user$project$Main$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$none;
 };
-var _user$project$Main$firstNoDepsDecoder = A2(
-	_elm_lang$core$Json_Decode$at,
-	{
-		ctor: '::',
-		_0: '0',
-		_1: {
-			ctor: '::',
-			_0: 'target',
-			_1: {ctor: '[]'}
-		}
-	},
-	_elm_lang$core$Json_Decode$string);
 var _user$project$Main$login = _elm_lang$core$Native_Platform.outgoingPort(
 	'login',
 	function (v) {
 		return v;
 	});
+var _user$project$Main$Target = F2(
+	function (a, b) {
+		return {target: a, pos: b};
+	});
+var _user$project$Main$targetDecoder = A3(
+	_elm_lang$core$Json_Decode$map2,
+	_user$project$Main$Target,
+	A2(
+		_elm_lang$core$Json_Decode$at,
+		{
+			ctor: '::',
+			_0: '0',
+			_1: {
+				ctor: '::',
+				_0: 'target',
+				_1: {ctor: '[]'}
+			}
+		},
+		_elm_lang$core$Json_Decode$string),
+	A2(
+		_elm_lang$core$Json_Decode$at,
+		{
+			ctor: '::',
+			_0: '0',
+			_1: {
+				ctor: '::',
+				_0: 'rowid',
+				_1: {ctor: '[]'}
+			}
+		},
+		_elm_lang$core$Json_Decode$int));
 var _user$project$Main$Model = F2(
 	function (a, b) {
 		return {err: a, target: b};
@@ -8709,10 +8728,13 @@ var _user$project$Main$FirstNoDeps = function (a) {
 var _user$project$Main$askFirstNoDeps = A2(
 	_elm_lang$http$Http$send,
 	_user$project$Main$FirstNoDeps,
-	A2(_elm_lang$http$Http$get, 'http://localhost:3000/firstNoDeps', _user$project$Main$firstNoDepsDecoder));
+	A2(_elm_lang$http$Http$get, 'http://localhost:3000/firstNoDeps', _user$project$Main$targetDecoder));
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
-	_0: A2(_user$project$Main$Model, '', '冫'),
+	_0: A2(
+		_user$project$Main$Model,
+		'',
+		A2(_user$project$Main$Target, '冫', 1)),
 	_1: _user$project$Main$askFirstNoDeps
 };
 var _user$project$Main$update = F2(
@@ -8796,7 +8818,8 @@ var _user$project$Main$view = function (model) {
 						}),
 					_1: {
 						ctor: '::',
-						_0: _elm_lang$html$Html$text(model.target),
+						_0: _elm_lang$html$Html$text(
+							_elm_lang$core$Basics$toString(model.target)),
 						_1: {
 							ctor: '::',
 							_0: A2(

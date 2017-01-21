@@ -15,13 +15,17 @@ main =
 -- MODEL
 
 
+type alias Target =
+    { target : String, pos : Int }
+
+
 type alias Model =
-    { err : String, target : String }
+    { err : String, target : Target }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model "" "冫", askFirstNoDeps )
+    ( Model "" (Target "冫" 1), askFirstNoDeps )
 
 
 
@@ -31,7 +35,7 @@ init =
 type Msg
     = Login
     | AskFirstNoDeps
-    | FirstNoDeps (Result Http.Error String)
+    | FirstNoDeps (Result Http.Error Target)
 
 
 port login : String -> Cmd msg
@@ -53,14 +57,16 @@ update msg model =
             ( { model | err = (toString err) }, Cmd.none )
 
 
-firstNoDepsDecoder : Decode.Decoder String
-firstNoDepsDecoder =
-    Decode.at [ "0", "target" ] Decode.string
+targetDecoder : Decode.Decoder Target
+targetDecoder =
+    Decode.map2 Target
+        (Decode.at [ "0", "target" ] Decode.string)
+        (Decode.at [ "0", "rowid" ] Decode.int)
 
 
 askFirstNoDeps : Cmd Msg
 askFirstNoDeps =
-    Http.send FirstNoDeps (Http.get "http://localhost:3000/firstNoDeps" firstNoDepsDecoder)
+    Http.send FirstNoDeps (Http.get "http://localhost:3000/firstNoDeps" targetDecoder)
 
 
 
@@ -82,6 +88,6 @@ view model =
         [ button [ onClick Login ] [ text "Login from Elm" ]
         , button [ onClick AskFirstNoDeps ] [ text "Ask for first target" ]
         , div [] [ text (toString model) ]
-        , text model.target
+        , text (toString model.target)
         , div [] [ text model.err ]
         ]
