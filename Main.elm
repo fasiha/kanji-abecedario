@@ -16,12 +16,12 @@ main =
 
 
 type alias Model =
-    { target : String }
+    { err : String, target : String }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model "冫", askFirstNoDeps )
+    ( Model "" "冫", askFirstNoDeps )
 
 
 
@@ -50,7 +50,7 @@ update msg model =
             ( { model | target = target }, Cmd.none )
 
         FirstNoDeps (Err err) ->
-            ( { model | target = (toString err) }, Cmd.none )
+            ( { model | err = (toString err) }, Cmd.none )
 
 
 firstNoDepsDecoder : Decode.Decoder String
@@ -83,4 +83,5 @@ view model =
         , button [ onClick AskFirstNoDeps ] [ text "Ask for first target" ]
         , div [] [ text (toString model) ]
         , text model.target
+        , div [] [ text model.err ]
         ]

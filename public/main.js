@@ -8699,9 +8699,10 @@ var _user$project$Main$login = _elm_lang$core$Native_Platform.outgoingPort(
 	function (v) {
 		return v;
 	});
-var _user$project$Main$Model = function (a) {
-	return {target: a};
-};
+var _user$project$Main$Model = F2(
+	function (a, b) {
+		return {err: a, target: b};
+	});
 var _user$project$Main$FirstNoDeps = function (a) {
 	return {ctor: 'FirstNoDeps', _0: a};
 };
@@ -8711,7 +8712,7 @@ var _user$project$Main$askFirstNoDeps = A2(
 	A2(_elm_lang$http$Http$get, 'http://localhost:3000/firstNoDeps', _user$project$Main$firstNoDepsDecoder));
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
-	_0: _user$project$Main$Model('冫'),
+	_0: A2(_user$project$Main$Model, '', '冫'),
 	_1: _user$project$Main$askFirstNoDeps
 };
 var _user$project$Main$update = F2(
@@ -8741,7 +8742,7 @@ var _user$project$Main$update = F2(
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								target: _elm_lang$core$Basics$toString(_p0._0._0)
+								err: _elm_lang$core$Basics$toString(_p0._0._0)
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
@@ -8796,7 +8797,18 @@ var _user$project$Main$view = function (model) {
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$html$Html$text(model.target),
-						_1: {ctor: '[]'}
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(model.err),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
 					}
 				}
 			}
