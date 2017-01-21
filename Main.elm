@@ -16,12 +16,12 @@ main =
 
 
 type alias Model =
-    { num : Int, target : String }
+    { target : String }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model 0 "", Cmd.none )
+    ( Model "冫", askFirstNoDeps )
 
 
 
@@ -29,9 +29,7 @@ init =
 
 
 type Msg
-    = Increment
-    | Decrement
-    | Login
+    = Login
     | AskFirstNoDeps
     | FirstNoDeps (Result Http.Error String)
 
@@ -42,12 +40,6 @@ port login : String -> Cmd msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Increment ->
-            ( { model | num = model.num + 1 }, Cmd.none )
-
-        Decrement ->
-            ( { model | num = model.num - 1 }, Cmd.none )
-
         Login ->
             ( model, login "doesntmatter" )
 
@@ -89,8 +81,6 @@ view model =
     div []
         [ button [ onClick Login ] [ text "Login from Elm" ]
         , button [ onClick AskFirstNoDeps ] [ text "Ask for first target" ]
-        , button [ onClick Decrement ] [ text "-" ]
         , div [] [ text (toString model) ]
-        , button [ onClick Increment ] [ text "+" ]
         , text model.target
         ]

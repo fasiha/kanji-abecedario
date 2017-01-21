@@ -8699,14 +8699,8 @@ var _user$project$Main$login = _elm_lang$core$Native_Platform.outgoingPort(
 	function (v) {
 		return v;
 	});
-var _user$project$Main$Model = F2(
-	function (a, b) {
-		return {num: a, target: b};
-	});
-var _user$project$Main$init = {
-	ctor: '_Tuple2',
-	_0: A2(_user$project$Main$Model, 0, ''),
-	_1: _elm_lang$core$Platform_Cmd$none
+var _user$project$Main$Model = function (a) {
+	return {target: a};
 };
 var _user$project$Main$FirstNoDeps = function (a) {
 	return {ctor: 'FirstNoDeps', _0: a};
@@ -8715,26 +8709,15 @@ var _user$project$Main$askFirstNoDeps = A2(
 	_elm_lang$http$Http$send,
 	_user$project$Main$FirstNoDeps,
 	A2(_elm_lang$http$Http$get, 'http://localhost:3000/firstNoDeps', _user$project$Main$firstNoDepsDecoder));
+var _user$project$Main$init = {
+	ctor: '_Tuple2',
+	_0: _user$project$Main$Model('冫'),
+	_1: _user$project$Main$askFirstNoDeps
+};
 var _user$project$Main$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
 		switch (_p0.ctor) {
-			case 'Increment':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{num: model.num + 1}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'Decrement':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{num: model.num - 1}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
 			case 'Login':
 				return {
 					ctor: '_Tuple2',
@@ -8767,8 +8750,6 @@ var _user$project$Main$update = F2(
 	});
 var _user$project$Main$AskFirstNoDeps = {ctor: 'AskFirstNoDeps'};
 var _user$project$Main$Login = {ctor: 'Login'};
-var _user$project$Main$Decrement = {ctor: 'Decrement'};
-var _user$project$Main$Increment = {ctor: 'Increment'};
 var _user$project$Main$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -8804,48 +8785,18 @@ var _user$project$Main$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$button,
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Decrement),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('-'),
+							_0: _elm_lang$html$Html$text(
+								_elm_lang$core$Basics$toString(model)),
 							_1: {ctor: '[]'}
 						}),
 					_1: {
 						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$div,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(
-									_elm_lang$core$Basics$toString(model)),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$button,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Increment),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text('+'),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(model.target),
-								_1: {ctor: '[]'}
-							}
-						}
+						_0: _elm_lang$html$Html$text(model.target),
+						_1: {ctor: '[]'}
 					}
 				}
 			}
