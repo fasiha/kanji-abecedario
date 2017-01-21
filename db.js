@@ -46,8 +46,8 @@ sources.sourcesTable.forEach(({col, row, printable}) => {
 
 // DB
 
-// var db = new sqlite3.Database('foo.db');
-var db = new sqlite3.Database(':memory:');
+var db = new sqlite3.Database('foo.db');
+// var db = new sqlite3.Database(':memory:');
 var ready = false;
 
 db.parallelize(() => {
@@ -100,16 +100,18 @@ function record(target, user, depsArray, cb) {
 }
 
 function depsFor(target, cb) {
-  db.all(`WITH t
-       AS (SELECT group_concat(deps.dependency, ",,,") AS s
-           FROM   deps
-           WHERE  deps.target = ?
-           GROUP  BY deps.user)
-      SELECT t.s,
-             count(t.s) AS c
-      FROM   t
-      GROUP  BY t.s
-      ORDER  BY c DESC`,
+  db.all(`SELECT sortedDeps,
+                 count(sortedDeps) AS cnt
+          FROM   (SELECT group_concat(d) AS sortedDeps
+                  FROM   (SELECT ALL deps.dependency AS d,
+                                     deps.user       AS u
+                          FROM   deps
+                          WHERE  deps.target = ?
+                          GROUP  BY deps.user,
+                                    deps.dependency)
+                  GROUP  BY u)
+          GROUP  BY sortedDeps
+          ORDER  BY cnt DESC;`,
          [ target ], cb);
 }
 
