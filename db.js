@@ -132,9 +132,10 @@ function firstNoDeps(cb) {
 }
 
 module.exports = {
-  db : db,
-  record : record,
-  depsFor : depsFor,
-  firstNoDeps : firstNoDeps,
+  db,
+  record,
+  depsFor,
+  firstNoDeps,
+  userDeps,
   cleanup : (cb) => db.close(cb),
 };
