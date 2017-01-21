@@ -21,5 +21,11 @@ lock.on("authenticated", function(authResult) {
   });
 });
 
+if (localStorage.getItem('idToken')) {
+  if (app && app.ports) {
+    app.ports.gotLocalStorage.send(localStorage.getItem('idToken'));
+  }
+}
+
 var btn_login = document.getElementById('btn-login');
 btn_login.addEventListener('click', function() { lock.show(); });
