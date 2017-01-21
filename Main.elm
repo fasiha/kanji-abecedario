@@ -20,12 +20,12 @@ type alias Target =
 
 
 type alias Model =
-    { err : String, target : Target }
+    { err : String, token : String, target : Target }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model "" (Target "冫" 1), askFirstNoDeps )
+    ( Model "" "invalid token" (Target "冫" 1), askFirstNoDeps )
 
 
 
@@ -36,6 +36,7 @@ type Msg
     = Login
     | AskFirstNoDeps
     | FirstNoDeps (Result Http.Error Target)
+    | GotLocalStorage String
 
 
 port login : String -> Cmd msg
@@ -56,6 +57,9 @@ update msg model =
         FirstNoDeps (Err err) ->
             ( { model | err = (toString err) }, Cmd.none )
 
+        GotLocalStorage str ->
+            ( { model | token = str }, Cmd.none )
+
 
 targetDecoder : Decode.Decoder Target
 targetDecoder =
@@ -73,9 +77,12 @@ askFirstNoDeps =
 -- SUBSCRIPTIONS
 
 
+port gotLocalStorage : (String -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    gotLocalStorage GotLocalStorage
 
 
 

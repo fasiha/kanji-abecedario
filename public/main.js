@@ -8679,14 +8679,12 @@ var _elm_lang$http$Http$StringPart = F2(
 	});
 var _elm_lang$http$Http$stringPart = _elm_lang$http$Http$StringPart;
 
-var _user$project$Main$subscriptions = function (model) {
-	return _elm_lang$core$Platform_Sub$none;
-};
 var _user$project$Main$login = _elm_lang$core$Native_Platform.outgoingPort(
 	'login',
 	function (v) {
 		return v;
 	});
+var _user$project$Main$gotLocalStorage = _elm_lang$core$Native_Platform.incomingPort('gotLocalStorage', _elm_lang$core$Json_Decode$string);
 var _user$project$Main$Target = F2(
 	function (a, b) {
 		return {target: a, pos: b};
@@ -8718,10 +8716,16 @@ var _user$project$Main$targetDecoder = A3(
 			}
 		},
 		_elm_lang$core$Json_Decode$int));
-var _user$project$Main$Model = F2(
-	function (a, b) {
-		return {err: a, target: b};
+var _user$project$Main$Model = F3(
+	function (a, b, c) {
+		return {err: a, token: b, target: c};
 	});
+var _user$project$Main$GotLocalStorage = function (a) {
+	return {ctor: 'GotLocalStorage', _0: a};
+};
+var _user$project$Main$subscriptions = function (model) {
+	return _user$project$Main$gotLocalStorage(_user$project$Main$GotLocalStorage);
+};
 var _user$project$Main$FirstNoDeps = function (a) {
 	return {ctor: 'FirstNoDeps', _0: a};
 };
@@ -8731,9 +8735,10 @@ var _user$project$Main$askFirstNoDeps = A2(
 	A2(_elm_lang$http$Http$get, 'http://localhost:3000/firstNoDeps', _user$project$Main$targetDecoder));
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
-	_0: A2(
+	_0: A3(
 		_user$project$Main$Model,
 		'',
+		'invalid token',
 		A2(_user$project$Main$Target, '冫', 1)),
 	_1: _user$project$Main$askFirstNoDeps
 };
@@ -8749,7 +8754,7 @@ var _user$project$Main$update = F2(
 				};
 			case 'AskFirstNoDeps':
 				return {ctor: '_Tuple2', _0: model, _1: _user$project$Main$askFirstNoDeps};
-			default:
+			case 'FirstNoDeps':
 				if (_p0._0.ctor === 'Ok') {
 					return {
 						ctor: '_Tuple2',
@@ -8769,6 +8774,14 @@ var _user$project$Main$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
+			default:
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{token: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 		}
 	});
 var _user$project$Main$AskFirstNoDeps = {ctor: 'AskFirstNoDeps'};

@@ -12,6 +12,12 @@ lock.on("authenticated", function(authResult) {
     localStorage.setItem('idToken', authResult.idToken); // JWT
     localStorage.setItem("accessToken", authResult.accessToken);
     localStorage.setItem("profile", JSON.stringify(profile));
+
+    // Send to Elm
+    if (app && app.ports) {
+      app.ports.gotLocalStorage.send(authResult.idToken);
+    }
+
   });
 });
 

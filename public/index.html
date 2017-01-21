@@ -7,14 +7,16 @@
 
 <button type="submit" id="btn-login">Sign In</button>
 
-<script src="./frontend.js"></script>
-
 <div id="main"></div>
 <script src="main.js"></script>
 <script>
   let node = document.getElementById('main');
   let app = Elm.Main.embed(node);
+
   app.ports.login.subscribe(function(word) {
     lock.show();
   });
+
 </script>
+
+<script src="./frontend.js"></script>
