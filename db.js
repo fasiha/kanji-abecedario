@@ -1,22 +1,20 @@
 "use strict";
+var Promise = require("bluebird");
 var fs = require('fs');
 var assert = require('assert');
-var sqlite3 = require('sqlite3').verbose();
-var crypto = require('crypto');
+var sqlite3 = Promise.promisifyAll(require('sqlite3')).verbose();
+var crypto = Promise.promisifyAll(require('crypto'));
 require('dotenv').config();
 
 var iterations = 1000;
 var keylen = 32; // bytes
 var digest = "sha256";
 
-function myhash(string, callback) {
-  crypto.pbkdf2(
-      string, process.env.SALT, iterations, keylen, digest, (err, key) => {
-        if (err) {
-          throw err;
-        }
-        callback(err, "hash1:" + Buffer(key, 'binary').toString('base64'));
-      });
+function myhash(string) {
+  return crypto
+      .pbkdf2Async(string, process.env.SALT, iterations, keylen, digest)
+      .then(key => "hash1:" + Buffer(key, 'binary').toString('base64'))
+      .catch(console.log.bind(console));
 }
 
 // DATA
@@ -85,58 +83,53 @@ function cleanDeps(depsArray) {
       .sort();
 }
 
-function record(target, user, depsArray, cb) {
-  myhash(user, (_, hash) => {
-    db.serialize(() => {
-      db.run(`DELETE FROM deps WHERE target = ? AND user = ?`,
-             [ target, hash ]);
-      var statement = db.prepare(`INSERT INTO deps VALUES (?, ?, ?)`);
-      cleanDeps(depsArray).forEach(d => statement.run([ target, hash, d ]));
-      if (cb) {
-        cb()
-      };
-    });
+function record(target, user, depsArray) {
+  return myhash(user).then(hash => {
+    var statement = db.prepare(`INSERT INTO deps VALUES (?, ?, ?)`);
+    return db
+        .runAsync(`DELETE FROM deps WHERE target = ? AND user = ?`,
+                  [ target, hash ])
+        .then(_ => Promise.all(cleanDeps(depsArray).map(
+                  d => statement.runAsync([ target, hash, d ]))));
   });
 }
 
-function depsFor(target, cb) {
-  db.all(`SELECT sortedDeps,
-                 count(sortedDeps) AS cnt,
-                 ? AS target
-          FROM   (SELECT group_concat(d) AS sortedDeps
-                  FROM   (SELECT ALL deps.dependency AS d,
-                                     deps.user       AS u
-                          FROM   deps
-                          WHERE  deps.target = ?
-                          GROUP  BY deps.user,
-                                    deps.dependency)
-                  GROUP  BY u)
-          GROUP  BY sortedDeps
-          ORDER  BY cnt DESC;`,
-         [ target, target ], cb);
+function depsFor(target) {
+  return db.allAsync(`SELECT sortedDeps,
+                             count(sortedDeps) AS cnt,
+                             ? AS target
+                      FROM   (SELECT group_concat(d) AS sortedDeps
+                              FROM   (SELECT ALL deps.dependency AS d,
+                                                 deps.user       AS u
+                                      FROM   deps
+                                      WHERE  deps.target = ?
+                                      GROUP  BY deps.user,
+                                                deps.dependency)
+                              GROUP  BY u)
+                      GROUP  BY sortedDeps
+                      ORDER  BY cnt DESC;`,
+                     [ target, target ]);
 }
 
 function userDeps(target, user, cb) {
-  myhash(user, (_, hash) => {
-    db.all(`SELECT deps.dependency
-            FROM deps
-            WHERE deps.target = ? AND deps.user = ?
-            ORDER BY deps.dependency`,
-           [ target, hash ], cb);
-  });
+  return myhash(user).then(hash => db.allAsync(`SELECT deps.dependency
+                                 FROM deps
+                                 WHERE deps.target = ? AND deps.user = ?
+                                 ORDER BY deps.dependency`,
+                                               [ target, hash ]));
 }
 
-function firstNoDeps(cb) {
-  db.all(`SELECT target, rowid
-       FROM targets
-       WHERE target NOT IN (SELECT DISTINCT target
-                            FROM deps)
-       LIMIT 1`,
-         cb);
+function firstNoDeps() {
+  return db.allAsync(`SELECT target, rowid
+                      FROM targets
+                      WHERE target NOT IN (SELECT DISTINCT target
+                                           FROM deps)
+                      LIMIT 1`);
 }
 
-function getPos(position, cb) {
-  db.all('SELECT target, rowid FROM targets WHERE rowid = ?', position, cb);
+function getPos(position) {
+  return db.allAsync('SELECT target, rowid FROM targets WHERE rowid = ?',
+                     position);
 }
 
 module.exports = {

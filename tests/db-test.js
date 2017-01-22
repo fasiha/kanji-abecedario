@@ -1,26 +1,35 @@
 "use strict";
+var Promise = require("bluebird");
 var tape = require("tape");
 var db = require("../db.js");
 
-var printAllDepsCallback =
-    () => { db.db.all('select * from deps', (e, r) => console.log(e, r)); };
+var printAndReturn = x => {
+  console.log("Printing:", x);
+  return x;
+};
+
 tape("testing", test => {
 
-  db.db.serialize(() => {
-    db.firstNoDeps((e, r) => console.log("firstNoDeps", e, r));
-    db.record("冫", 'test1', [ '語', '卜', '巾' ], null);
-    db.firstNoDeps((e, r) => console.log("firstNoDeps", e, r));
+  db.firstNoDeps()
+      .then(printAndReturn)
+      .then(_ => db.record("冫", 'test1', [ '語', '卜', '巾' ]))
+      .then(_ => db.firstNoDeps())
+      .then(printAndReturn)
+      .then(_ => Promise.all([
+        db.record("冫", 'test4', [ '卜' ]),
+        db.record("冫", 'test3', [ '卜', '巾' ]),
+        db.record("冫", 'test2', [ '卜', '巾', '語' ])
+      ]))
+      .then(_ => db.depsFor('冫'))
+      .then(printAndReturn)
+      .then(_ => db.record("氵", 'test2', [ 'A1', 'A2' ]))
+      .then(_ => db.firstNoDeps())
+      .then(printAndReturn)
+      .then(_ => db.getPos(1))
+      .then(printAndReturn)
+      .then(_ => db.getPos(100))
+      .then(printAndReturn)
+      .catch(console.log.bind(console));
 
-    db.record("冫", 'test4', [ '卜' ], null);
-    db.record("冫", 'test3', [ '卜', '巾' ], null);
-    db.record("冫", 'test2', [ '卜', '巾', '語' ], null);
-
-    db.depsFor('冫', (e, r) => console.log('depsFor', e, r));
-
-    db.record("氵", 'test2', [ 'A1', 'A2' ], null);
-
-    db.getPos(1, (e, r) => console.log("getPos", e, r))
-    db.getPos(100, (e, r) => console.log("getPos", e, r))
-  });
   test.end();
 });

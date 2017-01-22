@@ -47,64 +47,40 @@ app.get('/secured/ping', (req, res) => {
 });
 
 app.get('/secured/record/:target/:deps', (req, res) => {
-  db.record(req.params.target, req.user.sub, req.params.deps.split(','),
-            () => res.status(200).send("OK"));
+  db.record(req.params.target, req.user.sub, req.params.deps.split(','))
+      .then(_ => res.status(200).send("OK"))
+      .catch(console.log.bind(console));
 });
 
 app.get('/depsFor/:target', (req, res) => {
-  db.depsFor(req.params.target, (err, result) => {
-    if (err) {
-      console.error("ERROR SQLite, depsFor", err);
-      res.status(500).send('database error (depsFor)');
-    } else {
-      res.json(result);
-    }
+  db.depsFor(req.params.target).then(result => res.json(result)).catch(err => {
+    console.error("ERROR SQLite, depsFor", err);
+    res.status(500).send('database error (depsFor)');
   });
 });
 
 app.get('/firstNoDeps', (req, res) => {
-  db.firstNoDeps((err, result) => {
-    if (err) {
-      console.error("ERROR SQLite, firstNoDeps", err);
-      res.status(500).send('database error (firstNoDeps)');
-    } else {
-      res.json(result);
-    }
+  db.firstNoDeps().then(result => res.json(result)).catch(err => {
+    console.error("ERROR SQLite, firstNoDeps", err);
+    res.status(500).send('database error (firstNoDeps)');
   });
 });
 
 app.get('/secured/userDeps/:target', (req, res) => {
-  db.userDeps(req.params.target, req.user.sub, (err, result) => {
-    if (err) {
-      console.error("ERROR SQLite, userDeps", err);
-      res.status(500).send('database error (userDeps)');
-    } else {
-      res.json(result);
-    }
-  });
+  db.userDeps(req.params.target, req.user.sub)
+      .then(result => res.json(result))
+      .catch(err => {
+        console.error("ERROR SQLite, userDeps", err);
+        res.status(500).send('database error (userDeps)');
+      });
 });
 
 app.get('/getPos/:pos', (req, res) => {
-  db.getPos(+req.params.pos, (err, result) => {
-    if (err) {
-      console.error("ERROR SQLite, getPos", err);
-      res.status(500).send('database error (getPos)');
-    } else {
-      res.json(result);
-    }
+  db.getPos(+req.params.pos).then(result => res.json(result)).catch(err => {
+    console.error("ERROR SQLite, getPos", err);
+    res.status(500).send('database error (getPos)');
   });
 });
-
-// app.get('/userDeps/:target', (req, res) => {
-//   db.userDeps(req.params.target, "test1", (err, result) => {
-//     if (err) {
-//       console.error("ERROR SQLite, userDeps", err);
-//       res.status(500).send('database error');
-//     } else {
-//       res.json(result);
-//     }
-//   });
-// });
 
 var port = process.env.PORT || 3000;
 
