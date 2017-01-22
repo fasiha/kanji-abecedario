@@ -8685,44 +8685,28 @@ var _user$project$Main$login = _elm_lang$core$Native_Platform.outgoingPort(
 		return v;
 	});
 var _user$project$Main$gotLocalStorage = _elm_lang$core$Native_Platform.incomingPort('gotLocalStorage', _elm_lang$core$Json_Decode$string);
-var _user$project$Main$DependencyCount = F2(
+var _user$project$Main$Dependencies = F2(
 	function (a, b) {
 		return {depString: a, count: b};
 	});
+var _user$project$Main$depsDecoder = A3(
+	_elm_lang$core$Json_Decode$map2,
+	_user$project$Main$Dependencies,
+	A2(_elm_lang$core$Json_Decode$field, 'sortedDeps', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'cnt', _elm_lang$core$Json_Decode$int));
 var _user$project$Main$Target = F3(
 	function (a, b, c) {
 		return {target: a, pos: b, deps: c};
 	});
-var _user$project$Main$targetDecoder = A3(
-	_elm_lang$core$Json_Decode$map2,
-	F2(
-		function (a, b) {
-			return A3(_user$project$Main$Target, a, b, _elm_lang$core$Maybe$Nothing);
-		}),
+var _user$project$Main$targetDecoder = A4(
+	_elm_lang$core$Json_Decode$map3,
+	_user$project$Main$Target,
+	A2(_elm_lang$core$Json_Decode$field, 'target', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'rowid', _elm_lang$core$Json_Decode$int),
 	A2(
-		_elm_lang$core$Json_Decode$at,
-		{
-			ctor: '::',
-			_0: '0',
-			_1: {
-				ctor: '::',
-				_0: 'target',
-				_1: {ctor: '[]'}
-			}
-		},
-		_elm_lang$core$Json_Decode$string),
-	A2(
-		_elm_lang$core$Json_Decode$at,
-		{
-			ctor: '::',
-			_0: '0',
-			_1: {
-				ctor: '::',
-				_0: 'rowid',
-				_1: {ctor: '[]'}
-			}
-		},
-		_elm_lang$core$Json_Decode$int));
+		_elm_lang$core$Json_Decode$field,
+		'deps',
+		_elm_lang$core$Json_Decode$list(_user$project$Main$depsDecoder)));
 var _user$project$Main$Model = F3(
 	function (a, b, c) {
 		return {err: a, token: b, target: c};

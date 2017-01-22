@@ -96,8 +96,7 @@ function record(target, user, depsArray) {
 
 function depsFor(target) {
   return db.allAsync(`SELECT sortedDeps,
-                             count(sortedDeps) AS cnt,
-                             ? AS target
+                             count(sortedDeps) AS cnt
                       FROM   (SELECT group_concat(d) AS sortedDeps
                               FROM   (SELECT ALL deps.dependency AS d,
                                                  deps.user       AS u
@@ -108,7 +107,7 @@ function depsFor(target) {
                               GROUP  BY u)
                       GROUP  BY sortedDeps
                       ORDER  BY cnt DESC;`,
-                     [ target, target ]);
+                     [ target ]);
 }
 
 function userDeps(target, user, cb) {
@@ -120,16 +119,24 @@ function userDeps(target, user, cb) {
 }
 
 function firstNoDeps() {
-  return db.allAsync(`SELECT target, rowid
-                      FROM targets
-                      WHERE target NOT IN (SELECT DISTINCT target
-                                           FROM deps)
-                      LIMIT 1`);
+  return db
+      .allAsync(`SELECT target, rowid
+                 FROM targets
+                 WHERE target NOT IN (SELECT DISTINCT target
+                                      FROM deps)
+                 LIMIT 1`)
+      .then(x => {
+        var o = x[0];
+        o.deps = [];
+        return o;
+      });
 }
 
 function getPos(position) {
-  return db.allAsync('SELECT target, rowid FROM targets WHERE rowid = ?',
-                     position);
+  return db
+      .allAsync('SELECT target, rowid FROM targets WHERE rowid = ?', position)
+      .then(x => Promise.all([ x[0].target, x[0].rowid, depsFor(x[0].target) ]))
+      .then(([ target, rowid, deps ]) => ({target, rowid, deps}));
 }
 
 module.exports = {

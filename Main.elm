@@ -9,19 +9,24 @@ import Json.Decode as Decode
 
 main : Program Never Model Msg
 main =
-    Html.program { init = init, view = view, update = update, subscriptions = subscriptions }
+    Html.program
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
 
 
 
 -- MODEL
 
 
-type alias DependencyCount =
+type alias Dependencies =
     { depString : String, count : Int }
 
 
 type alias Target =
-    { target : String, pos : Int, deps : Maybe (List DependencyCount) }
+    { target : String, pos : Int, deps : List Dependencies }
 
 
 type alias Model =
@@ -66,11 +71,19 @@ update msg model =
             ( { model | token = str }, Cmd.none )
 
 
+depsDecoder : Decode.Decoder Dependencies
+depsDecoder =
+    Decode.map2 Dependencies
+        (Decode.field "sortedDeps" Decode.string)
+        (Decode.field "cnt" Decode.int)
+
+
 targetDecoder : Decode.Decoder Target
 targetDecoder =
-    Decode.map2 (\a b -> Target a b Nothing)
-        (Decode.at [ "0", "target" ] Decode.string)
-        (Decode.at [ "0", "rowid" ] Decode.int)
+    Decode.map3 Target
+        (Decode.field "target" Decode.string)
+        (Decode.field "rowid" Decode.int)
+        (Decode.field "deps" (Decode.list depsDecoder))
 
 
 askFirstNoDeps : Cmd Msg
