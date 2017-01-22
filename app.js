@@ -46,40 +46,39 @@ app.get('/secured/ping', (req, res) => {
       "All good. You only get this message if you're authenticated");
 });
 
+var makeError = errname => (err => {
+  console.error("ERROR SQLite", errname, err);
+  res.status(500).send(`database error (${errname})`);
+});
+
 app.get('/secured/record/:target/:deps', (req, res) => {
   db.record(req.params.target, req.user.sub, req.params.deps.split(','))
       .then(_ => res.status(200).send("OK"))
-      .catch(console.log.bind(console));
+      .catch(makeError('record'));
 });
 
 app.get('/depsFor/:target', (req, res) => {
-  db.depsFor(req.params.target).then(result => res.json(result)).catch(err => {
-    console.error("ERROR SQLite, depsFor", err);
-    res.status(500).send('database error (depsFor)');
-  });
+  db.depsFor(req.params.target)
+      .then(result => res.json(result))
+      .catch(makeError('depsFor'));
 });
 
 app.get('/firstNoDeps', (req, res) => {
-  db.firstNoDeps().then(result => res.json(result)).catch(err => {
-    console.error("ERROR SQLite, firstNoDeps", err);
-    res.status(500).send('database error (firstNoDeps)');
-  });
+  db.firstNoDeps()
+      .then(result => res.json(result))
+      .catch(makeError('firstNoDeps'));
 });
 
 app.get('/secured/userDeps/:target', (req, res) => {
   db.userDeps(req.params.target, req.user.sub)
       .then(result => res.json(result))
-      .catch(err => {
-        console.error("ERROR SQLite, userDeps", err);
-        res.status(500).send('database error (userDeps)');
-      });
+      .catch(makeError('userDeps'));
 });
 
 app.get('/getPos/:pos', (req, res) => {
-  db.getPos(+req.params.pos).then(result => res.json(result)).catch(err => {
-    console.error("ERROR SQLite, getPos", err);
-    res.status(500).send('database error (getPos)');
-  });
+  db.getPos(+req.params.pos)
+      .then(result => res.json(result))
+      .catch(makeError('getpos'));
 });
 
 var port = process.env.PORT || 3000;
