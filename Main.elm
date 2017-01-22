@@ -3,6 +3,7 @@ port module Main exposing (..)
 import Html exposing (Html, button, div, text)
 import Html.Events exposing (onClick)
 import Http
+import Maybe
 import Json.Decode as Decode
 
 
@@ -15,17 +16,21 @@ main =
 -- MODEL
 
 
+type alias DependencyCount =
+    { depString : String, count : Int }
+
+
 type alias Target =
-    { target : String, pos : Int }
+    { target : String, pos : Int, deps : Maybe (List DependencyCount) }
 
 
 type alias Model =
-    { err : String, token : String, target : Target }
+    { err : String, token : String, target : Maybe Target }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model "" "invalid token" (Target "冫" 1), askFirstNoDeps )
+    ( Model "" "invalid token" Maybe.Nothing, getPos 1 )
 
 
 
@@ -35,7 +40,7 @@ init =
 type Msg
     = Login
     | AskFirstNoDeps
-    | FirstNoDeps (Result Http.Error Target)
+    | GotTarget (Result Http.Error Target)
     | GotLocalStorage String
 
 
@@ -51,10 +56,10 @@ update msg model =
         AskFirstNoDeps ->
             ( model, askFirstNoDeps )
 
-        FirstNoDeps (Ok target) ->
-            ( { model | target = target }, Cmd.none )
+        GotTarget (Ok target) ->
+            ( { model | target = Just target }, Cmd.none )
 
-        FirstNoDeps (Err err) ->
+        GotTarget (Err err) ->
             ( { model | err = (toString err) }, Cmd.none )
 
         GotLocalStorage str ->
@@ -63,14 +68,19 @@ update msg model =
 
 targetDecoder : Decode.Decoder Target
 targetDecoder =
-    Decode.map2 Target
+    Decode.map2 (\a b -> Target a b Nothing)
         (Decode.at [ "0", "target" ] Decode.string)
         (Decode.at [ "0", "rowid" ] Decode.int)
 
 
 askFirstNoDeps : Cmd Msg
 askFirstNoDeps =
-    Http.send FirstNoDeps (Http.get "http://localhost:3000/firstNoDeps" targetDecoder)
+    Http.send GotTarget (Http.get "http://localhost:3000/firstNoDeps" targetDecoder)
+
+
+getPos : Int -> Cmd Msg
+getPos pos =
+    Http.send GotTarget (Http.get ("http://localhost:3000/getPos/" ++ (toString pos)) targetDecoder)
 
 
 

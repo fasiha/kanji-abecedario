@@ -101,7 +101,8 @@ function record(target, user, depsArray, cb) {
 
 function depsFor(target, cb) {
   db.all(`SELECT sortedDeps,
-                 count(sortedDeps) AS cnt
+                 count(sortedDeps) AS cnt,
+                 ? AS target
           FROM   (SELECT group_concat(d) AS sortedDeps
                   FROM   (SELECT ALL deps.dependency AS d,
                                      deps.user       AS u
@@ -112,7 +113,7 @@ function depsFor(target, cb) {
                   GROUP  BY u)
           GROUP  BY sortedDeps
           ORDER  BY cnt DESC;`,
-         [ target ], cb);
+         [ target, target ], cb);
 }
 
 function userDeps(target, user, cb) {
@@ -126,9 +127,16 @@ function userDeps(target, user, cb) {
 }
 
 function firstNoDeps(cb) {
-  db.all(
-      `SELECT target, rowid FROM targets WHERE target NOT IN (SELECT DISTINCT target FROM deps) LIMIT 1`,
-      cb);
+  db.all(`SELECT target, rowid
+       FROM targets
+       WHERE target NOT IN (SELECT DISTINCT target
+                            FROM deps)
+       LIMIT 1`,
+         cb);
+}
+
+function getPos(position, cb) {
+  db.all('SELECT target, rowid FROM targets WHERE rowid = ?', position, cb);
 }
 
 module.exports = {
@@ -137,5 +145,6 @@ module.exports = {
   depsFor,
   firstNoDeps,
   userDeps,
+  getPos,
   cleanup : (cb) => db.close(cb),
 };

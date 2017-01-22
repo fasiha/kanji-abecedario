@@ -18,6 +18,9 @@ tape("testing", test => {
     db.depsFor('冫', (e, r) => console.log('depsFor', e, r));
 
     db.record("氵", 'test2', [ 'A1', 'A2' ], null);
+
+    db.getPos(1, (e, r) => console.log("getPos", e, r))
+    db.getPos(100, (e, r) => console.log("getPos", e, r))
   });
   test.end();
 });

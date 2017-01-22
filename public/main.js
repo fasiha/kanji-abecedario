@@ -8685,13 +8685,20 @@ var _user$project$Main$login = _elm_lang$core$Native_Platform.outgoingPort(
 		return v;
 	});
 var _user$project$Main$gotLocalStorage = _elm_lang$core$Native_Platform.incomingPort('gotLocalStorage', _elm_lang$core$Json_Decode$string);
-var _user$project$Main$Target = F2(
+var _user$project$Main$DependencyCount = F2(
 	function (a, b) {
-		return {target: a, pos: b};
+		return {depString: a, count: b};
+	});
+var _user$project$Main$Target = F3(
+	function (a, b, c) {
+		return {target: a, pos: b, deps: c};
 	});
 var _user$project$Main$targetDecoder = A3(
 	_elm_lang$core$Json_Decode$map2,
-	_user$project$Main$Target,
+	F2(
+		function (a, b) {
+			return A3(_user$project$Main$Target, a, b, _elm_lang$core$Maybe$Nothing);
+		}),
 	A2(
 		_elm_lang$core$Json_Decode$at,
 		{
@@ -8726,22 +8733,13 @@ var _user$project$Main$GotLocalStorage = function (a) {
 var _user$project$Main$subscriptions = function (model) {
 	return _user$project$Main$gotLocalStorage(_user$project$Main$GotLocalStorage);
 };
-var _user$project$Main$FirstNoDeps = function (a) {
-	return {ctor: 'FirstNoDeps', _0: a};
+var _user$project$Main$GotTarget = function (a) {
+	return {ctor: 'GotTarget', _0: a};
 };
 var _user$project$Main$askFirstNoDeps = A2(
 	_elm_lang$http$Http$send,
-	_user$project$Main$FirstNoDeps,
+	_user$project$Main$GotTarget,
 	A2(_elm_lang$http$Http$get, 'http://localhost:3000/firstNoDeps', _user$project$Main$targetDecoder));
-var _user$project$Main$init = {
-	ctor: '_Tuple2',
-	_0: A3(
-		_user$project$Main$Model,
-		'',
-		'invalid token',
-		A2(_user$project$Main$Target, '冫', 1)),
-	_1: _user$project$Main$askFirstNoDeps
-};
 var _user$project$Main$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
@@ -8754,13 +8752,15 @@ var _user$project$Main$update = F2(
 				};
 			case 'AskFirstNoDeps':
 				return {ctor: '_Tuple2', _0: model, _1: _user$project$Main$askFirstNoDeps};
-			case 'FirstNoDeps':
+			case 'GotTarget':
 				if (_p0._0.ctor === 'Ok') {
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{target: _p0._0._0}),
+							{
+								target: _elm_lang$core$Maybe$Just(_p0._0._0)
+							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
@@ -8784,6 +8784,23 @@ var _user$project$Main$update = F2(
 				};
 		}
 	});
+var _user$project$Main$getPos = function (pos) {
+	return A2(
+		_elm_lang$http$Http$send,
+		_user$project$Main$GotTarget,
+		A2(
+			_elm_lang$http$Http$get,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'http://localhost:3000/getPos/',
+				_elm_lang$core$Basics$toString(pos)),
+			_user$project$Main$targetDecoder));
+};
+var _user$project$Main$init = {
+	ctor: '_Tuple2',
+	_0: A3(_user$project$Main$Model, '', 'invalid token', _elm_lang$core$Maybe$Nothing),
+	_1: _user$project$Main$getPos(1)
+};
 var _user$project$Main$AskFirstNoDeps = {ctor: 'AskFirstNoDeps'};
 var _user$project$Main$Login = {ctor: 'Login'};
 var _user$project$Main$view = function (model) {

@@ -51,11 +51,11 @@ app.get('/secured/record/:target/:deps', (req, res) => {
             () => res.status(200).send("OK"));
 });
 
-app.get('/secured/userDeps/:target', (req, res) => {
-  db.userDeps(req.params.target, req.user.sub, (err, result) => {
+app.get('/depsFor/:target', (req, res) => {
+  db.depsFor(req.params.target, (err, result) => {
     if (err) {
-      console.error("ERROR SQLite, userDeps", err);
-      res.status(500).send('database error (userDeps)');
+      console.error("ERROR SQLite, depsFor", err);
+      res.status(500).send('database error (depsFor)');
     } else {
       res.json(result);
     }
@@ -73,11 +73,22 @@ app.get('/firstNoDeps', (req, res) => {
   });
 });
 
-app.get('/depsFor/:target', (req, res) => {
-  db.depsFor(req.params.target, (err, result) => {
+app.get('/secured/userDeps/:target', (req, res) => {
+  db.userDeps(req.params.target, req.user.sub, (err, result) => {
     if (err) {
-      console.error("ERROR SQLite, depsFor", err);
-      res.status(500).send('database error (depsFor)');
+      console.error("ERROR SQLite, userDeps", err);
+      res.status(500).send('database error (userDeps)');
+    } else {
+      res.json(result);
+    }
+  });
+});
+
+app.get('/getPos/:pos', (req, res) => {
+  db.getPos(+req.params.pos, (err, result) => {
+    if (err) {
+      console.error("ERROR SQLite, getPos", err);
+      res.status(500).send('database error (getPos)');
     } else {
       res.json(result);
     }
