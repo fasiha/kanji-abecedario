@@ -1,6 +1,8 @@
 port module Main exposing (..)
 
 import Html exposing (Html, button, div, text)
+import Svg
+import Svg.Attributes exposing (viewBox, d)
 import Html.Events exposing (onClick)
 import Http
 import Maybe
@@ -141,7 +143,26 @@ view model =
     div []
         [ button [ onClick Login ] [ text "Login from Elm" ]
         , button [ onClick AskFirstNoDeps ] [ text "Ask for first target" ]
-        , div [] [ text (toString { model | primitives = (List.take 5 model.primitives) }) ]
+        , div []
+            [ text
+                (toString
+                    { model
+                        | primitives = (List.take 1 model.primitives)
+                        , token = String.slice 0 5 model.token
+                    }
+                )
+            ]
         , text (toString model.target)
         , div [] [ text model.err ]
+        , renderPrimitives model.primitives
         ]
+
+
+renderPrimitive : Primitive -> Html Msg
+renderPrimitive primitive =
+    Svg.svg [ viewBox "0 0 109 109" ] (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
+
+
+renderPrimitives : List Primitive -> Html Msg
+renderPrimitives primitives =
+    div [] (List.map renderPrimitive primitives)
