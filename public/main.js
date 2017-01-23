@@ -8707,10 +8707,33 @@ var _user$project$Main$targetDecoder = A4(
 		_elm_lang$core$Json_Decode$field,
 		'deps',
 		_elm_lang$core$Json_Decode$list(_user$project$Main$depsDecoder)));
-var _user$project$Main$Model = F3(
+var _user$project$Main$Primitive = F3(
 	function (a, b, c) {
-		return {err: a, token: b, target: c};
+		return {paths: a, target: b, heading: c};
 	});
+var _user$project$Main$primitiveDecoder = A4(
+	_elm_lang$core$Json_Decode$map3,
+	_user$project$Main$Primitive,
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'paths',
+		_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string)),
+	A2(_elm_lang$core$Json_Decode$field, 'target', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'heading', _elm_lang$core$Json_Decode$string));
+var _user$project$Main$Model = F4(
+	function (a, b, c, d) {
+		return {err: a, token: b, target: c, primitives: d};
+	});
+var _user$project$Main$GotPrimitives = function (a) {
+	return {ctor: 'GotPrimitives', _0: a};
+};
+var _user$project$Main$getPrimitives = A2(
+	_elm_lang$http$Http$send,
+	_user$project$Main$GotPrimitives,
+	A2(
+		_elm_lang$http$Http$get,
+		'http://localhost:3000/data/paths.json',
+		_elm_lang$core$Json_Decode$list(_user$project$Main$primitiveDecoder)));
 var _user$project$Main$GotLocalStorage = function (a) {
 	return {ctor: 'GotLocalStorage', _0: a};
 };
@@ -8758,7 +8781,7 @@ var _user$project$Main$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
-			default:
+			case 'GotLocalStorage':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -8766,6 +8789,26 @@ var _user$project$Main$update = F2(
 						{token: _p0._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
+			default:
+				if (_p0._0.ctor === 'Err') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								err: _elm_lang$core$Basics$toString(_p0._0._0)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{primitives: _p0._0._0}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
 		}
 	});
 var _user$project$Main$getPos = function (pos) {
@@ -8782,8 +8825,22 @@ var _user$project$Main$getPos = function (pos) {
 };
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
-	_0: A3(_user$project$Main$Model, '', 'invalid token', _elm_lang$core$Maybe$Nothing),
-	_1: _user$project$Main$getPos(1)
+	_0: A4(
+		_user$project$Main$Model,
+		'',
+		'invalid token',
+		_elm_lang$core$Maybe$Nothing,
+		{ctor: '[]'}),
+	_1: _elm_lang$core$Platform_Cmd$batch(
+		{
+			ctor: '::',
+			_0: _user$project$Main$getPos(1),
+			_1: {
+				ctor: '::',
+				_0: _user$project$Main$getPrimitives,
+				_1: {ctor: '[]'}
+			}
+		})
 };
 var _user$project$Main$AskFirstNoDeps = {ctor: 'AskFirstNoDeps'};
 var _user$project$Main$Login = {ctor: 'Login'};
@@ -8827,7 +8884,12 @@ var _user$project$Main$view = function (model) {
 						{
 							ctor: '::',
 							_0: _elm_lang$html$Html$text(
-								_elm_lang$core$Basics$toString(model)),
+								_elm_lang$core$Basics$toString(
+									_elm_lang$core$Native_Utils.update(
+										model,
+										{
+											primitives: A2(_elm_lang$core$List$take, 5, model.primitives)
+										}))),
 							_1: {ctor: '[]'}
 						}),
 					_1: {

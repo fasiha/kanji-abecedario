@@ -29,13 +29,40 @@ type alias Target =
     { target : String, pos : Int, deps : List Dependencies }
 
 
+type alias Primitive =
+    { paths : List String, target : String, heading : String }
+
+
 type alias Model =
-    { err : String, token : String, target : Maybe Target }
+    { err : String, token : String, target : Maybe Target, primitives : List Primitive }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model "" "invalid token" Maybe.Nothing, getPos 1 )
+    ( Model "" "invalid token" Maybe.Nothing [], Cmd.batch [ getPos 1, getPrimitives ] )
+
+
+depsDecoder : Decode.Decoder Dependencies
+depsDecoder =
+    Decode.map2 Dependencies
+        (Decode.field "sortedDeps" Decode.string)
+        (Decode.field "cnt" Decode.int)
+
+
+targetDecoder : Decode.Decoder Target
+targetDecoder =
+    Decode.map3 Target
+        (Decode.field "target" Decode.string)
+        (Decode.field "rowid" Decode.int)
+        (Decode.field "deps" (Decode.list depsDecoder))
+
+
+primitiveDecoder : Decode.Decoder Primitive
+primitiveDecoder =
+    Decode.map3 Primitive
+        (Decode.field "paths" (Decode.list Decode.string))
+        (Decode.field "target" Decode.string)
+        (Decode.field "heading" Decode.string)
 
 
 
@@ -47,6 +74,7 @@ type Msg
     | AskFirstNoDeps
     | GotTarget (Result Http.Error Target)
     | GotLocalStorage String
+    | GotPrimitives (Result Http.Error (List Primitive))
 
 
 port login : String -> Cmd msg
@@ -70,20 +98,16 @@ update msg model =
         GotLocalStorage str ->
             ( { model | token = str }, Cmd.none )
 
+        GotPrimitives (Err err) ->
+            ( { model | err = (toString err) }, Cmd.none )
 
-depsDecoder : Decode.Decoder Dependencies
-depsDecoder =
-    Decode.map2 Dependencies
-        (Decode.field "sortedDeps" Decode.string)
-        (Decode.field "cnt" Decode.int)
+        GotPrimitives (Ok list) ->
+            ( { model | primitives = list }, Cmd.none )
 
 
-targetDecoder : Decode.Decoder Target
-targetDecoder =
-    Decode.map3 Target
-        (Decode.field "target" Decode.string)
-        (Decode.field "rowid" Decode.int)
-        (Decode.field "deps" (Decode.list depsDecoder))
+getPrimitives : Cmd Msg
+getPrimitives =
+    Http.send GotPrimitives (Http.get "http://localhost:3000/data/paths.json" (Decode.list primitiveDecoder))
 
 
 askFirstNoDeps : Cmd Msg
@@ -117,7 +141,7 @@ view model =
     div []
         [ button [ onClick Login ] [ text "Login from Elm" ]
         , button [ onClick AskFirstNoDeps ] [ text "Ask for first target" ]
-        , div [] [ text (toString model) ]
+        , div [] [ text (toString { model | primitives = (List.take 5 model.primitives) }) ]
         , text (toString model.target)
         , div [] [ text model.err ]
         ]
