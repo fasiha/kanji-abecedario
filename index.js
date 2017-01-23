@@ -34,7 +34,8 @@ function cleansvg(svg) {
       .replace(' width="109" height="109"', '')
       .replace(/\s*<\/*g[^>]*>\s*/g, '')
       .replace(/\n\s*/g, '\n')
-      .replace(/ id="[^"]*" kvg:type="[^"]*"/g, '')
+      .replace(/ id="[^"]*"/g, '')
+      .replace(/ kvg:type="[^"]*"/g, '')
       .trim();
 }
 
@@ -311,9 +312,33 @@ svg {
 </style>
 ${printout}
 `);
-fs.writeFileSync('svgs.json', JSON.stringify({heading2base, columns}));
+fs.writeFileSync('data/svgs.json', JSON.stringify({heading2base, columns}));
 
-// The rest of this is for making additional files, some for Postgres (unused),
+function svg2paths(svg) {
+  return svg.split('<')
+      .filter(s => s.indexOf("path") >= 0)
+      .map(s => s.match(/"(.*)"/)[1]);
+}
+
+var paths = flatten1(Object.keys(heading2base).map(heading => {
+  var targets = heading2base[heading];
+  var svgs = columns[heading];
+  var paths = svgs.map(svg2paths);
+  return fmap((paths, target, num) => ({paths, target, heading, num}), paths,
+              targets, range1(1, targets.length));
+}));
+
+var seenTargets = new Map([]);
+paths.reduceRight((_, c, i) => {
+  if (!seenTargets.has(c.target)) {
+    seenTargets.set(c.target, i);
+  }
+});
+var uniquePaths = paths.filter((o, i) => i === seenTargets.get(o.target));
+fs.writeFileSync('data/paths.json', JSON.stringify(uniquePaths));
+
+// The rest of this is for making additional files, some for Postgres
+// (unused),
 // but others for general data analysis.
 
 var fmapobj = (f, o) => fmap(f, Object.keys(o), Object.values(o));
@@ -397,7 +422,7 @@ sources.forEach(
     ([ col, row, source ]) =>
         sourcesMap.get(`${col.toLowerCase()}${row}`).sources.push(source));
 sourcesTable = Array.from(sourcesMap.values());
-fs.writeFileSync('sources.json', JSON.stringify({sourcesTable}));
+fs.writeFileSync('data/sources.json', JSON.stringify({sourcesTable}));
 
 console.log(`Next run:
   $ cat db.sql | psql test`);
