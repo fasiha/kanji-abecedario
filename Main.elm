@@ -2,6 +2,7 @@ port module Main exposing (..)
 
 import Html exposing (Html, button, div, text)
 import Html.Attributes as HA
+import Set
 import Svg
 import Svg.Attributes exposing (viewBox, d, class)
 import Html.Events exposing (onClick)
@@ -37,12 +38,23 @@ type alias Primitive =
 
 
 type alias Model =
-    { err : String, token : String, target : Maybe Target, primitives : List Primitive }
+    { err : String
+    , token : String
+    , target : Maybe Target
+    , primitives : List Primitive
+    , selected : Set.Set String
+    }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model "" "invalid token" Maybe.Nothing [], Cmd.batch [ getPos 1, getPrimitives ] )
+    ( Model ""
+        "invalid token"
+        Maybe.Nothing
+        []
+        Set.empty
+    , Cmd.batch [ getPos 1, getPrimitives ]
+    )
 
 
 depsDecoder : Decode.Decoder Dependencies
@@ -78,6 +90,7 @@ type Msg
     | GotTarget (Result Http.Error Target)
     | GotLocalStorage String
     | GotPrimitives (Result Http.Error (List Primitive))
+    | SelectPrimitive String
 
 
 port login : String -> Cmd msg
@@ -106,6 +119,17 @@ update msg model =
 
         GotPrimitives (Ok list) ->
             ( { model | primitives = list }, Cmd.none )
+
+        SelectPrimitive str ->
+            ( { model
+                | selected =
+                    if Set.member str model.selected then
+                        Set.remove str model.selected
+                    else
+                        Set.insert str model.selected
+              }
+            , Cmd.none
+            )
 
 
 getPrimitives : Cmd Msg
@@ -155,16 +179,28 @@ view model =
             ]
         , text (toString model.target)
         , div [] [ text model.err ]
-        , renderPrimitives model.primitives
+        , renderPrimitives model.primitives model.selected
         ]
 
 
-renderPrimitive : Primitive -> Html Msg
-renderPrimitive primitive =
-    Svg.svg [ viewBox "0 0 109 109", class ("col-" ++ primitive.heading) ]
+renderPrimitive : Primitive -> Set.Set String -> Html Msg
+renderPrimitive primitive selecteds =
+    Svg.svg
+        [ viewBox "0 0 109 109"
+        , class
+            (String.join " "
+                [ ("col-" ++ primitive.heading)
+                , if Set.member primitive.target selecteds then
+                    "primitive-selected"
+                  else
+                    ""
+                ]
+            )
+        , onClick (SelectPrimitive primitive.target)
+        ]
         (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
-renderPrimitives : List Primitive -> Html Msg
-renderPrimitives primitives =
-    div [ HA.class "primitive-container" ] (List.map renderPrimitive primitives)
+renderPrimitives : List Primitive -> Set.Set String -> Html Msg
+renderPrimitives primitives selected =
+    div [ HA.class "primitive-container" ] (List.map (\p -> renderPrimitive p selected) primitives)
