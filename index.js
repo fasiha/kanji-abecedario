@@ -30,16 +30,29 @@ function cleansvg(svg) {
   return svg.match(/<svg[\s\S]*/)[0]
       .split('\n')
       .filter(s => s.indexOf('<text ') < 0)
-      .join('\n');
+      .join('\n')
+      .replace(' width="109" height="109"', '')
+      .replace(/\s*<\/*g[^>]*>\s*/g, '')
+      .replace(/\n\s*/g, '\n')
+      .replace(/ id="[^"]*" kvg:type="[^"]*"/g, '')
+      .trim();
 }
 
 function keepstrokes(svg, strokes) {
-  const alternator = strokes.map(x => '' + x).join('|');
-  const re = new RegExp(`id="kvg:[^"]*?-s(${alternator})"`);
-  const strokere = /id="kvg:[^"]*?-s/;
-  return svg.split('\n')
-      .filter(s => !s.match(strokere) || s.match(re))
-      .join('\n');
+  var tags = svg.split('<');
+  var strokenum = 1;
+  var goodtags = [];
+  for (let tag of tags) {
+    if (tag.indexOf('path ') === 0) {
+      if (strokes.indexOf(strokenum) >= 0) {
+        goodtags.push(tag);
+      }
+      strokenum++;
+    } else {
+      goodtags.push(tag);
+    }
+  }
+  return goodtags.join('<');
 }
 
 // from http://stackoverflow.com/a/8273091/500207
@@ -48,10 +61,13 @@ function range(start, stop, step) {
     stop = start;
     start = 0;
   }
-  if (typeof step === 'undefined') step = 1;
-  if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) return [];
+  if (typeof step === 'undefined')
+    step = 1;
+  if ((step > 0 && start >= stop) || (step < 0 && start <= stop))
+    return [];
   var result = [];
-  for (var i = start; step > 0 ? i < stop : i > stop; i += step) result.push(i);
+  for (var i = start; step > 0 ? i < stop : i > stop; i += step)
+    result.push(i);
   return result;
 };
 
@@ -73,9 +89,9 @@ var charRangeToSVG = (char, str) =>
     keepstrokes(character2svg(char), rangesStringToArr(str));
 
 var heading2base = {};
-heading2base.le = '冫氵忄丬亻禾米⻖弓犭扌礻衤糸王木言⻊酉食金馬日月'.split('');
+heading2base.le = '冫氵忄丬亻禾米⻏弓犭扌礻衤糸王木言足酉食金馬日月'.split('');
 heading2base.ri = '彡刂⻏卩攵頁隹月'.split('');
-heading2base.to = '䒑⺌龴⺈宀艹⺮⺲⺍爫'.split('').concat([ 'every', '⻗' ]);
+heading2base.to = '䒑⺌龴⺈宀艹⺮⺲⺍爫'.split('').concat([ 'every', '雨' ]);
 heading2base.bo = 'ハ儿心灬月'.split('');
 heading2base.en = '厂广疒⻌廴囗'.split('');
 heading2base.fr = '丶,fun,丨,卜,巾,土,大'.split(',');
@@ -84,10 +100,9 @@ var columns = {};
 
 columns.le = '冫氵忄'.split('').map(character2svg);
 columns.le.push(keepstrokes(character2svg('壮'), range1(1, 3)));
-columns.le = columns.le.concat('亻禾米⻖弓'.split('').map(character2svg));
+columns.le = columns.le.concat('亻禾米⻏弓'.split('').map(character2svg));
 columns.le.push(keepstrokes(character2svg('猿'), range1(1, 3)));
-columns.le = columns.le.concat('扌礻衤糸王木言'.split('').map(character2svg));
-columns.le.push(keepstrokes(character2svg('踊'), range1(1, 7)));
+columns.le = columns.le.concat('扌礻衤糸王木言足'.split('').map(character2svg));
 columns.le = columns.le.concat('酉食金馬日月'.split('').map(character2svg));
 
 columns.ri = '彡刂⻏卩攵頁隹月'.split('').map(character2svg);
@@ -96,7 +111,7 @@ columns.to = [
   [ '首', range1(1, 3) ], [ '肖', range1(1, 3) ], [ '甬', range1(1, 2) ],
   [ '急', range1(1, 2) ], [ '安', range1(1, 3) ], [ '草', range1(1, 3) ],
   [ '筒', range1(1, 6) ], [ '夢', range1(4, 8) ], [ '学', range1(1, 5) ],
-  [ '妥', range1(1, 4) ], [ '海', range1(4, 5) ], [ '雷', range1(1, 8) ]
+  [ '妥', range1(1, 4) ], [ '海', range1(4, 5) ], [ '雨', range1(1, 8) ]
 ].map(([ char, r ]) => keepstrokes(character2svg(char), r));
 
 columns.bo = heading2base.bo.map(character2svg)
@@ -141,7 +156,7 @@ columns.f[5] = charRangeToSVG('潮', '4-11');
 
 headString('g', '千,舌,重,禾,釆,壬,廷,手,乗,垂,彳,行,升,隹');
 
-headString('h', '牛,告,先,生,朱,矢,矢,牛,recommend,乍,竹');
+headString('h', '牛,告,先,生,朱,失,矢,午,recommend,乍,竹');
 columns.h[8] = charRangeToSVG('勧', '1-11');
 
 headString('i',
@@ -280,17 +295,26 @@ var printout = columnsHeadings
                                        columns[h] || [], heading2base[h] || [])
                                       .join(' '))
                    .join('<br>');
-fs.writeFileSync('index.html',
-                 `<!doctype html>
+fs.writeFileSync('index.html', `<!doctype html>
 <meta charset="utf-8">
 <style>
 svg {
-    border: 1px solid black;
+  border: 1px solid black;
+  width: 33px;
+  height: 33px;
+  fill:none;
+  stroke:#000000;
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 </style>
 ${printout}
 `);
-fs.writeFileSync('dump.json', JSON.stringify({heading2base, columns}));
+fs.writeFileSync('svgs.json', JSON.stringify({heading2base, columns}));
+
+// The rest of this is for making additional files, some for Postgres (unused),
+// but others for general data analysis.
 
 var fmapobj = (f, o) => fmap(f, Object.keys(o), Object.values(o));
 
@@ -364,8 +388,6 @@ var sources = flatten1(
              }))
           .map(v => v.concat(head));
     }));
-// var {heading2base, columns} = JSON.parse(fs.readFileSync('dump.json',
-// 'utf8'));
 var sourcesTable = flatten1(fmap(
     (col, rows) =>
         rows.map((s, i) => ({col, row : i + 1, printable : s, sources : []})),
@@ -377,6 +399,5 @@ sources.forEach(
 sourcesTable = Array.from(sourcesMap.values());
 fs.writeFileSync('sources.json', JSON.stringify({sourcesTable}));
 
-console.log(
-    `Next run:
+console.log(`Next run:
   $ cat db.sql | psql test`);
