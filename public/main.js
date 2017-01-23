@@ -9550,7 +9550,7 @@ var _user$project$Main$SelectPrimitive = function (a) {
 	return {ctor: 'SelectPrimitive', _0: a};
 };
 var _user$project$Main$renderPrimitive = F2(
-	function (primitive, selecteds) {
+	function (selecteds, primitive) {
 		return A2(
 			_elm_lang$svg$Svg$svg,
 			{
@@ -9594,7 +9594,7 @@ var _user$project$Main$renderPrimitive = F2(
 				primitive.paths));
 	});
 var _user$project$Main$renderPrimitives = F2(
-	function (primitives, selected) {
+	function (selected, primitives) {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -9604,9 +9604,7 @@ var _user$project$Main$renderPrimitives = F2(
 			},
 			A2(
 				_elm_lang$core$List$map,
-				function (p) {
-					return A2(_user$project$Main$renderPrimitive, p, selected);
-				},
+				_user$project$Main$renderPrimitive(selected),
 				primitives));
 	});
 var _user$project$Main$GotPrimitives = function (a) {
@@ -9806,7 +9804,7 @@ var _user$project$Main$view = function (model) {
 								}),
 							_1: {
 								ctor: '::',
-								_0: A2(_user$project$Main$renderPrimitives, model.primitives, model.selected),
+								_0: A2(_user$project$Main$renderPrimitives, model.selected, model.primitives),
 								_1: {ctor: '[]'}
 							}
 						}

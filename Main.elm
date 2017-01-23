@@ -179,12 +179,12 @@ view model =
             ]
         , text (toString model.target)
         , div [] [ text model.err ]
-        , renderPrimitives model.primitives model.selected
+        , renderPrimitives model.selected model.primitives
         ]
 
 
-renderPrimitive : Primitive -> Set.Set String -> Html Msg
-renderPrimitive primitive selecteds =
+renderPrimitive : Set.Set String -> Primitive -> Html Msg
+renderPrimitive selecteds primitive =
     Svg.svg
         [ viewBox "0 0 109 109"
         , class
@@ -201,6 +201,7 @@ renderPrimitive primitive selecteds =
         (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
-renderPrimitives : List Primitive -> Set.Set String -> Html Msg
-renderPrimitives primitives selected =
-    div [ HA.class "primitive-container" ] (List.map (\p -> renderPrimitive p selected) primitives)
+renderPrimitives : Set.Set String -> List Primitive -> Html Msg
+renderPrimitives selected primitives =
+    div [ HA.class "primitive-container" ]
+        (List.map (renderPrimitive selected) primitives)
