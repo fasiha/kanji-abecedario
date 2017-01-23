@@ -20,4 +20,15 @@ var o = _.groupBy(_.zip(Object.keys(bases), Object.values(bases))
 Object.values(_.groupBy(a))
     .filter(v => v.length > 1)
     .map(v => v[0])
-    .map(s => o[s])
+    .map(s => o[s]);
+
+/*
+var colors =
+    "Cornsilk,BlanchedAlmond,Bisque,NavajoWhite,Wheat,BurlyWood,Tan,RosyBrown,SandyBrown,Goldenrod,DarkGoldenrod,Peru,Chocolate,SaddleBrown,Sienna,Brown,Maroon,Pink,MediumVioletRed,Salmon,IndianRed,Tomato,Crimson,DarkOliveGreen,Olive,YellowGreen,Chartreuse,DarkSeaGreen,MediumSeaGreen,PaleTurquoise,DarkTurquoise,CadetBlue,PowderBlue,DodgerBlue,Navy"
+        .split(',');
+colors.length
+var css = Object.keys(bases).map((s,i) => `svg.col-${s} {
+  border: 2px solid ${colors[i]};
+}`).join('\n');
+console.log(css)
+*/

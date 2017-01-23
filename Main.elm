@@ -1,8 +1,9 @@
 port module Main exposing (..)
 
 import Html exposing (Html, button, div, text)
+import Html.Attributes as HA
 import Svg
-import Svg.Attributes exposing (viewBox, d)
+import Svg.Attributes exposing (viewBox, d, class)
 import Html.Events exposing (onClick)
 import Http
 import Maybe
@@ -160,9 +161,10 @@ view model =
 
 renderPrimitive : Primitive -> Html Msg
 renderPrimitive primitive =
-    Svg.svg [ viewBox "0 0 109 109" ] (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
+    Svg.svg [ viewBox "0 0 109 109", class ("col-" ++ primitive.heading) ]
+        (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
 renderPrimitives : List Primitive -> Html Msg
 renderPrimitives primitives =
-    div [] (List.map renderPrimitive primitives)
+    div [ HA.class "primitive-container" ] (List.map renderPrimitive primitives)
