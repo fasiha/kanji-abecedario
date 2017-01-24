@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tape 'test/**/*-test.js'"
+    "test": "tape 'test/**/*-test.js'",
+    "min": "uglifyjs public/main.js --source-map public/main.map -c -o public/main.min.js"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "lodash": "^4.17.4",
-    "tape": "^4.6.3"
+    "tape": "^4.6.3",
+    "uglify-js": "^2.7.5"
   }
 }
