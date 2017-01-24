@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 var jwt = require('express-jwt');
 var cors = require('cors');
 var http = require('http');
+var compression = require('compression')
 require('dotenv').config();
 
 var db = require('./db');
@@ -19,6 +20,7 @@ var authenticate = jwt({
 });
 
 app.use(cors());
+app.use(compression()); // Small payloads like JSON responses don't compress...
 
 // uncomment after placing your favicon in /public
 // app.use(favicon(__dirname + '/public/favicon.ico'));
