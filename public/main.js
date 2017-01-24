@@ -9700,7 +9700,7 @@ var _user$project$Main$record = F3(
 			_user$project$Main$GotTarget,
 			_elm_lang$http$Http$request(
 				{
-					method: 'GET',
+					method: 'POST',
 					headers: {
 						ctor: '::',
 						_0: A2(
@@ -9709,17 +9709,10 @@ var _user$project$Main$record = F3(
 							A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', token)),
 						_1: {ctor: '[]'}
 					},
-					url: A2(
-						_elm_lang$core$Basics_ops['++'],
-						'http://localhost:3000/secured/record/',
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							target,
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'/',
-								A2(_elm_lang$core$String$join, ',', deps)))),
-					body: _elm_lang$http$Http$emptyBody,
+					url: A2(_elm_lang$core$Basics_ops['++'], 'http://localhost:3000/secured/record/', target),
+					body: _elm_lang$http$Http$jsonBody(
+						_elm_lang$core$Json_Encode$list(
+							A2(_elm_lang$core$List$map, _elm_lang$core$Json_Encode$string, deps))),
 					expect: _elm_lang$http$Http$expectJson(_user$project$Main$targetDecoder),
 					timeout: _elm_lang$core$Maybe$Nothing,
 					withCredentials: false

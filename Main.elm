@@ -9,6 +9,7 @@ import Html.Events exposing (onClick)
 import Http
 import Maybe
 import Json.Decode as Decode
+import Json.Encode as Encode
 
 
 main : Program Never Model Msg
@@ -147,14 +148,12 @@ record : String -> String -> List String -> Cmd Msg
 record token target deps =
     Http.send GotTarget
         (Http.request
-            { method = "GET"
+            { method = "POST"
             , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
             , url =
-                "http://localhost:3000/secured/record/"
-                    ++ target
-                    ++ "/"
-                    ++ (String.join "," deps)
-            , body = Http.emptyBody
+                "http://localhost:3000/secured/record/" ++ target
+            , body =
+                Http.jsonBody (Encode.list (List.map Encode.string deps))
             , expect = Http.expectJson targetDecoder
             , timeout = Nothing
             , withCredentials = False

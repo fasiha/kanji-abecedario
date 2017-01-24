@@ -54,8 +54,8 @@ var makeError = (res, errname) => (err => {
 
 // TODO some of these functions in `db` return [], which should 404.
 
-app.get('/secured/record/:target/:deps', (req, res) => {
-  db.record(req.params.target, req.user.sub, req.params.deps.split(','))
+app.post('/secured/record/:target', (req, res) => {
+  db.record(req.params.target, req.user.sub, req.body)
       .then(_ => res.redirect(`/getTarget/${req.params.target}`))
       .catch(makeError(res, 'record'));
 });
