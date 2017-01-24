@@ -8,3 +8,5 @@ data/
 elm-stuff/
 *.log
 *.db
+public/main.js
+
