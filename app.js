@@ -47,39 +47,48 @@ app.get('/secured/ping', (req, res) => {
       "All good. You only get this message if you're authenticated");
 });
 
-var makeError = errname => (err => {
+var makeError = (res, errname) => (err => {
   console.error("ERROR SQLite", errname, err);
   res.status(500).send(`database error (${errname})`);
 });
 
+// TODO some of these functions in `db` return [], which should 404.
+
 app.get('/secured/record/:target/:deps', (req, res) => {
   db.record(req.params.target, req.user.sub, req.params.deps.split(','))
-      .then(_ => res.status(200).send("OK"))
-      .catch(makeError('record'));
+      .then(_ => db.getTarget(req.params.target))
+      .then(result => res.json(result))
+      .catch(makeError(res, 'record'));
 });
 
 app.get('/depsFor/:target', (req, res) => {
   db.depsFor(req.params.target)
       .then(result => res.json(result))
-      .catch(makeError('depsFor'));
+      .catch(makeError(res, 'depsFor'));
 });
 
 app.get('/firstNoDeps', (req, res) => {
   db.firstNoDeps()
       .then(result => res.json(result))
-      .catch(makeError('firstNoDeps'));
+      .catch(makeError(res, 'firstNoDeps'));
 });
 
 app.get('/secured/userDeps/:target', (req, res) => {
   db.userDeps(req.params.target, req.user.sub)
       .then(result => res.json(result))
-      .catch(makeError('userDeps'));
+      .catch(makeError(res, 'userDeps'));
 });
 
 app.get('/getPos/:pos', (req, res) => {
   db.getPos(+req.params.pos)
       .then(result => res.json(result))
-      .catch(makeError('getpos'));
+      .catch(makeError(res, 'getPos'));
+});
+
+app.get('/getTarget/:target', (req, res) => {
+  db.getTarget(req.params.target)
+      .then(result => res.json(result))
+      .catch(makeError(res, 'getTarget'));
 });
 
 var port = process.env.PORT || 3000;

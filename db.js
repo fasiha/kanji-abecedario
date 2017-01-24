@@ -132,11 +132,27 @@ function firstNoDeps() {
       });
 }
 
+function targetRowidPromiseToDeps(promise) {
+  return promise
+      .then(x => {
+        if (x.length > 0) {
+          return Promise.all(
+              [ true, x[0].target, x[0].rowid, depsFor(x[0].target) ]);
+        }
+        return [ false ];
+      })
+      .then(([ success, target, rowid, deps ]) =>
+                success ? {target, rowid, deps} : []);
+}
+
 function getPos(position) {
-  return db
-      .allAsync('SELECT target, rowid FROM targets WHERE rowid = ?', position)
-      .then(x => Promise.all([ x[0].target, x[0].rowid, depsFor(x[0].target) ]))
-      .then(([ target, rowid, deps ]) => ({target, rowid, deps}));
+  return targetRowidPromiseToDeps(db.allAsync(
+      'SELECT target, rowid FROM targets WHERE rowid = ?', position));
+}
+
+function getTarget(target) {
+  return targetRowidPromiseToDeps(db.allAsync(
+      'SELECT target, rowid FROM targets WHERE target = ?', target));
 }
 
 module.exports = {
@@ -146,5 +162,6 @@ module.exports = {
   firstNoDeps,
   userDeps,
   getPos,
+  getTarget,
   cleanup : (cb) => db.close(cb),
 };
