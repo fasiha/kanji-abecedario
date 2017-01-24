@@ -9501,6 +9501,72 @@ var _elm_lang$svg$Svg_Attributes$accumulate = _elm_lang$virtual_dom$VirtualDom$a
 var _elm_lang$svg$Svg_Attributes$accelerate = _elm_lang$virtual_dom$VirtualDom$attribute('accelerate');
 var _elm_lang$svg$Svg_Attributes$accentHeight = _elm_lang$virtual_dom$VirtualDom$attribute('accent-height');
 
+var _user$project$Main$renderTargetDeps = function (target) {
+	return A2(
+		_elm_lang$html$Html$ul,
+		{ctor: '[]'},
+		A2(
+			_elm_lang$core$List$map,
+			function (dep) {
+				return A2(
+					_elm_lang$html$Html$li,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								dep.depString,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									' (',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										_elm_lang$core$Basics$toString(dep.count),
+										' votes)')))),
+						_1: {ctor: '[]'}
+					});
+			},
+			target.deps));
+};
+var _user$project$Main$renderTarget = function (maybetarget) {
+	var _p0 = maybetarget;
+	if (_p0.ctor === 'Just') {
+		var _p1 = _p0._0;
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$h1,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'Help us decompose ',
+								A2(_elm_lang$core$Basics_ops['++'], _p1.target, '!'))),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: _user$project$Main$renderTargetDeps(_p1),
+					_1: {ctor: '[]'}
+				}
+			});
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text('(Waiting for network)'),
+				_1: {ctor: '[]'}
+			});
+	}
+};
 var _user$project$Main$login = _elm_lang$core$Native_Platform.outgoingPort(
 	'login',
 	function (v) {
@@ -9546,6 +9612,7 @@ var _user$project$Main$Model = F5(
 	function (a, b, c, d, e) {
 		return {err: a, token: b, target: c, primitives: d, selected: e};
 	});
+var _user$project$Main$Record = {ctor: 'Record'};
 var _user$project$Main$SelectPrimitive = function (a) {
 	return {ctor: 'SelectPrimitive', _0: a};
 };
@@ -9626,14 +9693,46 @@ var _user$project$Main$subscriptions = function (model) {
 var _user$project$Main$GotTarget = function (a) {
 	return {ctor: 'GotTarget', _0: a};
 };
+var _user$project$Main$record = F3(
+	function (token, target, deps) {
+		return A2(
+			_elm_lang$http$Http$send,
+			_user$project$Main$GotTarget,
+			_elm_lang$http$Http$request(
+				{
+					method: 'GET',
+					headers: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$http$Http$header,
+							'Authorization',
+							A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', token)),
+						_1: {ctor: '[]'}
+					},
+					url: A2(
+						_elm_lang$core$Basics_ops['++'],
+						'http://localhost:3000/secured/record/',
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							target,
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'/',
+								A2(_elm_lang$core$String$join, ',', deps)))),
+					body: _elm_lang$http$Http$emptyBody,
+					expect: _elm_lang$http$Http$expectJson(_user$project$Main$targetDecoder),
+					timeout: _elm_lang$core$Maybe$Nothing,
+					withCredentials: false
+				}));
+	});
 var _user$project$Main$askFirstNoDeps = A2(
 	_elm_lang$http$Http$send,
 	_user$project$Main$GotTarget,
 	A2(_elm_lang$http$Http$get, 'http://localhost:3000/firstNoDeps', _user$project$Main$targetDecoder));
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p0 = msg;
-		switch (_p0.ctor) {
+		var _p2 = msg;
+		switch (_p2.ctor) {
 			case 'Login':
 				return {
 					ctor: '_Tuple2',
@@ -9643,13 +9742,13 @@ var _user$project$Main$update = F2(
 			case 'AskFirstNoDeps':
 				return {ctor: '_Tuple2', _0: model, _1: _user$project$Main$askFirstNoDeps};
 			case 'GotTarget':
-				if (_p0._0.ctor === 'Ok') {
+				if (_p2._0.ctor === 'Ok') {
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								target: _elm_lang$core$Maybe$Just(_p0._0._0)
+								target: _elm_lang$core$Maybe$Just(_p2._0._0)
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
@@ -9659,7 +9758,7 @@ var _user$project$Main$update = F2(
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								err: _elm_lang$core$Basics$toString(_p0._0._0)
+								err: _elm_lang$core$Basics$toString(_p2._0._0)
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
@@ -9669,17 +9768,17 @@ var _user$project$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{token: _p0._0}),
+						{token: _p2._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'GotPrimitives':
-				if (_p0._0.ctor === 'Err') {
+				if (_p2._0.ctor === 'Err') {
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								err: _elm_lang$core$Basics$toString(_p0._0._0)
+								err: _elm_lang$core$Basics$toString(_p2._0._0)
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
@@ -9688,21 +9787,38 @@ var _user$project$Main$update = F2(
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{primitives: _p0._0._0}),
+							{primitives: _p2._0._0}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
-			default:
-				var _p1 = _p0._0;
+			case 'SelectPrimitive':
+				var _p3 = _p2._0;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							selected: A2(_elm_lang$core$Set$member, _p1, model.selected) ? A2(_elm_lang$core$Set$remove, _p1, model.selected) : A2(_elm_lang$core$Set$insert, _p1, model.selected)
+							selected: A2(_elm_lang$core$Set$member, _p3, model.selected) ? A2(_elm_lang$core$Set$remove, _p3, model.selected) : A2(_elm_lang$core$Set$insert, _p3, model.selected)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
+			default:
+				var _p4 = model.target;
+				if (_p4.ctor === 'Nothing') {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{selected: _elm_lang$core$Set$empty}),
+						_1: A3(
+							_user$project$Main$record,
+							model.token,
+							_p4._0.target,
+							_elm_lang$core$Set$toList(model.selected))
+					};
+				}
 		}
 	});
 var _user$project$Main$getPos = function (pos) {
@@ -9774,34 +9890,37 @@ var _user$project$Main$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$div,
-						{ctor: '[]'},
+						_elm_lang$html$Html$button,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text(
-								_elm_lang$core$Basics$toString(
-									_elm_lang$core$Native_Utils.update(
-										model,
-										{
-											primitives: A2(_elm_lang$core$List$take, 1, model.primitives),
-											token: A3(_elm_lang$core$String$slice, 0, 5, model.token)
-										}))),
+							_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Record),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Record'),
 							_1: {ctor: '[]'}
 						}),
 					_1: {
 						ctor: '::',
-						_0: _elm_lang$html$Html$text(
-							_elm_lang$core$Basics$toString(model.target)),
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									_elm_lang$core$Basics$toString(
+										_elm_lang$core$Native_Utils.update(
+											model,
+											{
+												primitives: A2(_elm_lang$core$List$take, 1, model.primitives),
+												token: A3(_elm_lang$core$String$slice, 0, 5, model.token)
+											}))),
+								_1: {ctor: '[]'}
+							}),
 						_1: {
 							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$div,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(model.err),
-									_1: {ctor: '[]'}
-								}),
+							_0: _user$project$Main$renderTarget(model.target),
 							_1: {
 								ctor: '::',
 								_0: A2(_user$project$Main$renderPrimitives, model.selected, model.primitives),

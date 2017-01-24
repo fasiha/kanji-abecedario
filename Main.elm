@@ -91,6 +91,7 @@ type Msg
     | GotLocalStorage String
     | GotPrimitives (Result Http.Error (List Primitive))
     | SelectPrimitive String
+    | Record
 
 
 port login : String -> Cmd msg
@@ -131,6 +132,35 @@ update msg model =
             , Cmd.none
             )
 
+        Record ->
+            case model.target of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just target ->
+                    ( { model | selected = Set.empty }
+                    , record model.token target.target (Set.toList model.selected)
+                    )
+
+
+record : String -> String -> List String -> Cmd Msg
+record token target deps =
+    Http.send GotTarget
+        (Http.request
+            { method = "GET"
+            , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+            , url =
+                "http://localhost:3000/secured/record/"
+                    ++ target
+                    ++ "/"
+                    ++ (String.join "," deps)
+            , body = Http.emptyBody
+            , expect = Http.expectJson targetDecoder
+            , timeout = Nothing
+            , withCredentials = False
+            }
+        )
+
 
 getPrimitives : Cmd Msg
 getPrimitives =
@@ -168,6 +198,7 @@ view model =
     div []
         [ button [ onClick Login ] [ text "Login from Elm" ]
         , button [ onClick AskFirstNoDeps ] [ text "Ask for first target" ]
+        , button [ onClick Record ] [ text "Record" ]
         , div []
             [ text
                 (toString
@@ -177,10 +208,40 @@ view model =
                     }
                 )
             ]
-        , text (toString model.target)
-        , div [] [ text model.err ]
+        , renderTarget model.target
         , renderPrimitives model.selected model.primitives
         ]
+
+
+renderTargetDeps : Target -> Html Msg
+renderTargetDeps target =
+    Html.ul []
+        (List.map
+            (\dep ->
+                Html.li []
+                    [ text
+                        (dep.depString
+                            ++ " ("
+                            ++ (toString dep.count)
+                            ++ " votes)"
+                        )
+                    ]
+            )
+            target.deps
+        )
+
+
+renderTarget : Maybe Target -> Html Msg
+renderTarget maybetarget =
+    case maybetarget of
+        Just target ->
+            div []
+                [ Html.h1 [] [ text ("Help us decompose " ++ target.target ++ "!") ]
+                , renderTargetDeps target
+                ]
+
+        Nothing ->
+            div [] [ text "(Waiting for network)" ]
 
 
 renderPrimitive : Set.Set String -> Primitive -> Html Msg

@@ -56,8 +56,7 @@ var makeError = (res, errname) => (err => {
 
 app.get('/secured/record/:target/:deps', (req, res) => {
   db.record(req.params.target, req.user.sub, req.params.deps.split(','))
-      .then(_ => db.getTarget(req.params.target))
-      .then(result => res.json(result))
+      .then(_ => res.redirect(`/getTarget/${req.params.target}`))
       .catch(makeError(res, 'record'));
 });
 
