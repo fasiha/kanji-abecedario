@@ -197,8 +197,12 @@ view : Model -> Html Msg
 view model =
     div []
         [ button [ onClick Login ] [ text "Login from Elm" ]
-        , button [ onClick AskFirstNoDeps ] [ text "Ask for first target" ]
+        , button [] [ text "My kanji" ]
+        , button [] [ text "Previous kanji" ]
+        , button [] [ text "Next kanji" ]
+        , button [ onClick AskFirstNoDeps ] [ text "First kanji without deps" ]
         , button [ onClick Record ] [ text "Record" ]
+        , button [] [ text "Type in kanji" ]
         , div []
             [ text
                 (toString

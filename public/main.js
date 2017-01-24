@@ -9877,54 +9877,98 @@ var _user$project$Main$view = function (model) {
 				ctor: '::',
 				_0: A2(
 					_elm_lang$html$Html$button,
+					{ctor: '[]'},
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$AskFirstNoDeps),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text('Ask for first target'),
+						_0: _elm_lang$html$Html$text('My kanji'),
 						_1: {ctor: '[]'}
 					}),
 				_1: {
 					ctor: '::',
 					_0: A2(
 						_elm_lang$html$Html$button,
+						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Record),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('Record'),
+							_0: _elm_lang$html$Html$text('Previous kanji'),
 							_1: {ctor: '[]'}
 						}),
 					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$div,
+							_elm_lang$html$Html$button,
 							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html$text(
-									_elm_lang$core$Basics$toString(
-										_elm_lang$core$Native_Utils.update(
-											model,
-											{
-												primitives: A2(_elm_lang$core$List$take, 1, model.primitives),
-												token: A3(_elm_lang$core$String$slice, 0, 5, model.token)
-											}))),
+								_0: _elm_lang$html$Html$text('Next kanji'),
 								_1: {ctor: '[]'}
 							}),
 						_1: {
 							ctor: '::',
-							_0: _user$project$Main$renderTarget(model.target),
+							_0: A2(
+								_elm_lang$html$Html$button,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$AskFirstNoDeps),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('First kanji without deps'),
+									_1: {ctor: '[]'}
+								}),
 							_1: {
 								ctor: '::',
-								_0: A2(_user$project$Main$renderPrimitives, model.selected, model.primitives),
-								_1: {ctor: '[]'}
+								_0: A2(
+									_elm_lang$html$Html$button,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Record),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Record'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$button,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Type in kanji'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$div,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text(
+													_elm_lang$core$Basics$toString(
+														_elm_lang$core$Native_Utils.update(
+															model,
+															{
+																primitives: A2(_elm_lang$core$List$take, 1, model.primitives),
+																token: A3(_elm_lang$core$String$slice, 0, 5, model.token)
+															}))),
+												_1: {ctor: '[]'}
+											}),
+										_1: {
+											ctor: '::',
+											_0: _user$project$Main$renderTarget(model.target),
+											_1: {
+												ctor: '::',
+												_0: A2(_user$project$Main$renderPrimitives, model.selected, model.primitives),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
 							}
 						}
 					}
