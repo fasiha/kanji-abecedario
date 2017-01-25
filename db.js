@@ -46,31 +46,26 @@ sources.sourcesTable.forEach(({col, row, printable}) => {
 
 var db = new sqlite3.Database('deps.db');
 // var db = new sqlite3.Database(':memory:');
-var ready = false;
 
-db.parallelize(() => {
-  db.serialize(() => {
-    db.run(
-        `CREATE TABLE IF NOT EXISTS targets (target TEXT PRIMARY KEY NOT NULL)`);
-    var s = sources.sourcesTable.map(o => o.printable)
-                .concat(allKanji.split(''))
-                .map(s => `("${s}")`)
-                .join(',');
-    db.run(`INSERT OR IGNORE INTO targets VALUES ${s}`);
-  });
-
-  db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS deps (
-          target TEXT NOT NULL,
-          user TEXT NOT NULL,
-          dependency TEXT NOT NULL,
-          FOREIGN KEY(target) REFERENCES targets(target),
-          FOREIGN KEY(dependency) REFERENCES targets(target))`);
-    db.run(`CREATE INDEX IF NOT EXISTS targetUser ON deps (target, user)`);
-  });
-
-  ready = true;
-});
+db.runAsync(`PRAGMA foreign_keys = ON`)
+    .then(
+        _ => db.runAsync(
+            `CREATE TABLE IF NOT EXISTS targets (target TEXT PRIMARY KEY NOT NULL)`))
+    .then(_ => db.runAsync(`CREATE TABLE IF NOT EXISTS deps (
+            target TEXT NOT NULL,
+            user TEXT NOT NULL,
+            dependency TEXT NOT NULL,
+            FOREIGN KEY(target) REFERENCES targets(target),
+            FOREIGN KEY(dependency) REFERENCES targets(target))`))
+    .then(_ => db.runAsync(
+              `CREATE INDEX IF NOT EXISTS targetUser ON deps (target, user)`))
+    .then(_ => {
+      var s = sources.sourcesTable.map(o => o.printable)
+                  .concat(allKanji.split(''))
+                  .map(s => `("${s}")`)
+                  .join(',');
+      return db.run(`INSERT OR IGNORE INTO targets VALUES ${s}`)
+    });
 
 // SERVICES
 

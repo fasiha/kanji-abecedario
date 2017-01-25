@@ -117,6 +117,7 @@ update msg model =
 
         GotTarget (Err err) ->
             case err of
+                -- Could be because of getPos/-1, getTarget/foo, or invalid record
                 Http.BadStatus res ->
                     ( { model | err = (toString err) }, Cmd.none )
 
