@@ -54,8 +54,6 @@ var makeError = (res, errname) => (err => {
   res.status(500).send(`database error (${errname})`);
 });
 
-// TODO some of these functions in `db` return [], which should 404.
-
 app.post('/secured/record/:target', (req, res) => {
   db.record(req.params.target, req.user.sub, req.body)
       .then(_ => res.redirect(`/getTarget/${req.params.target}`))
@@ -70,7 +68,9 @@ app.get('/depsFor/:target', (req, res) => {
 
 app.get('/firstNoDeps', (req, res) => {
   db.firstNoDeps()
-      .then(result => res.json(result))
+      .then(result => result.length === 0
+                          ? res.status(404).send('no rows found')
+                          : res.json(result))
       .catch(makeError(res, 'firstNoDeps'));
 });
 
@@ -82,13 +82,17 @@ app.get('/secured/userDeps/:target', (req, res) => {
 
 app.get('/getPos/:pos', (req, res) => {
   db.getPos(+req.params.pos)
-      .then(result => res.json(result))
+      .then(result => result.length === 0
+                          ? res.status(404).send('no rows found')
+                          : res.json(result))
       .catch(makeError(res, 'getPos'));
 });
 
 app.get('/getTarget/:target', (req, res) => {
   db.getTarget(req.params.target)
-      .then(result => res.json(result))
+      .then(result => result.length === 0
+                          ? res.status(404).send('no rows found')
+                          : res.json(result))
       .catch(makeError(res, 'getTarget'));
 });
 

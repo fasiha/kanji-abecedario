@@ -126,13 +126,16 @@ function firstNoDeps() {
                                       FROM deps)
                  LIMIT 1`)
       .then(x => {
-        var o = x[0];
-        o.deps = [];
-        return o;
+        if (x.length > 0) {
+          var o = x[0];
+          o.deps = [];
+          return o;
+        }
+        return [];
       });
 }
 
-function targetRowidPromiseToDeps(promise) {
+function addDepsToTargetRowidPromise(promise) {
   return promise
       .then(x => {
         if (x.length > 0) {
@@ -146,12 +149,12 @@ function targetRowidPromiseToDeps(promise) {
 }
 
 function getPos(position) {
-  return targetRowidPromiseToDeps(db.allAsync(
+  return addDepsToTargetRowidPromise(db.allAsync(
       'SELECT target, rowid FROM targets WHERE rowid = ?', position));
 }
 
 function getTarget(target) {
-  return targetRowidPromiseToDeps(db.allAsync(
+  return addDepsToTargetRowidPromise(db.allAsync(
       'SELECT target, rowid FROM targets WHERE target = ?', target));
 }
 
