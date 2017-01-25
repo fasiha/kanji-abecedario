@@ -19,6 +19,7 @@ var authenticate = jwt({
   audience : process.env.AUTH0_CLIENT_ID
 });
 
+app.set('x-powered-by', false);
 app.use(cors());
 app.use(compression()); // Small payloads like JSON responses don't compress...
 
