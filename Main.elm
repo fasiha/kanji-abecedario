@@ -98,6 +98,7 @@ type Msg
     | Previous
     | Next
     | Input String
+    | Accept String
 
 
 port login : String -> Cmd msg
@@ -175,6 +176,19 @@ update msg model =
             ( { model | kanjis = text |> String.split "" |> Set.fromList }
             , Cmd.none
             )
+
+        Accept str ->
+            case model.target of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just target ->
+                    ( { model | selected = Set.empty }
+                    , record
+                        model.token
+                        target.target
+                        (String.split "," str)
+                    )
 
 
 record : String -> String -> List String -> Cmd Msg
@@ -267,8 +281,9 @@ renderTargetDeps target =
                         (dep.depString
                             ++ " ("
                             ++ (toString dep.count)
-                            ++ " votes)"
+                            ++ " votes) "
                         )
+                    , button [ onClick (Accept dep.depString) ] [ text "Accept" ]
                     ]
             )
             target.deps
