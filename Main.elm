@@ -5,7 +5,7 @@ import Html.Attributes as HA
 import Set
 import Svg
 import Svg.Attributes exposing (viewBox, d, class)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Http
 import Maybe
 import Json.Decode as Decode
@@ -44,6 +44,7 @@ type alias Model =
     , target : Maybe Target
     , primitives : List Primitive
     , selected : Set.Set String
+    , kanjis : Set.Set String
     }
 
 
@@ -53,6 +54,7 @@ init =
         "invalid token"
         Maybe.Nothing
         []
+        Set.empty
         Set.empty
     , Cmd.batch [ getPos 1, getPrimitives ]
     )
@@ -95,6 +97,7 @@ type Msg
     | Record
     | Previous
     | Next
+    | Input String
 
 
 port login : String -> Cmd msg
@@ -147,7 +150,10 @@ update msg model =
 
                 Just target ->
                     ( { model | selected = Set.empty }
-                    , record model.token target.target (Set.toList model.selected)
+                    , record
+                        model.token
+                        target.target
+                        (Set.toList <| Set.union model.selected model.kanjis)
                     )
 
         Previous ->
@@ -162,6 +168,11 @@ update msg model =
             , model.target
                 |> Maybe.map (.pos >> ((+) 1) >> getPos)
                 |> Maybe.withDefault Cmd.none
+            )
+
+        Input text ->
+            ( { model | kanjis = text |> String.split "" |> Set.fromList }
+            , Cmd.none
             )
 
 
@@ -230,7 +241,7 @@ view model =
         , button [ onClick Next ] [ text "Next kanji" ]
         , button [ onClick AskFirstNoDeps ] [ text "First kanji without deps" ]
         , button [ onClick Record ] [ text "Record" ]
-        , button [] [ text "Type in kanji" ]
+        , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
         , div []
             [ text
                 (toString
