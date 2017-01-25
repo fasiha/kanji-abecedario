@@ -93,6 +93,8 @@ type Msg
     | GotPrimitives (Result Http.Error (List Primitive))
     | SelectPrimitive String
     | Record
+    | Previous
+    | Next
 
 
 port login : String -> Cmd msg
@@ -111,7 +113,12 @@ update msg model =
             ( { model | target = Just target }, Cmd.none )
 
         GotTarget (Err err) ->
-            ( { model | err = (toString err) }, Cmd.none )
+            case err of
+                Http.BadStatus res ->
+                    ( { model | err = (toString err) }, Cmd.none )
+
+                _ ->
+                    ( { model | err = (toString err) }, Cmd.none )
 
         GotLocalStorage str ->
             ( { model | token = str }, Cmd.none )
@@ -142,6 +149,26 @@ update msg model =
                     ( { model | selected = Set.empty }
                     , record model.token target.target (Set.toList model.selected)
                     )
+
+        Previous ->
+            ( model
+            , case model.target of
+                Just target ->
+                    getPos (target.pos - 1)
+
+                Nothing ->
+                    Cmd.none
+            )
+
+        Next ->
+            ( model
+            , case model.target of
+                Just target ->
+                    getPos (target.pos + 1)
+
+                Nothing ->
+                    Cmd.none
+            )
 
 
 record : String -> String -> List String -> Cmd Msg
@@ -197,8 +224,17 @@ view model =
     div []
         [ button [ onClick Login ] [ text "Login from Elm" ]
         , button [] [ text "My kanji" ]
-        , button [] [ text "Previous kanji" ]
-        , button [] [ text "Next kanji" ]
+        , button
+            [ onClick Previous
+            , HA.disabled
+                (model.target
+                    |> Maybe.map .pos
+                    |> Maybe.map ((<=) 1)
+                    |> Maybe.withDefault True
+                )
+            ]
+            [ text "Previous kanji" ]
+        , button [ onClick Next ] [ text "Next kanji" ]
         , button [ onClick AskFirstNoDeps ] [ text "First kanji without deps" ]
         , button [ onClick Record ] [ text "Record" ]
         , button [] [ text "Type in kanji" ]
