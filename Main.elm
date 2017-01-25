@@ -152,22 +152,16 @@ update msg model =
 
         Previous ->
             ( model
-            , case model.target of
-                Just target ->
-                    getPos (target.pos - 1)
-
-                Nothing ->
-                    Cmd.none
+            , model.target
+                |> Maybe.map (.pos >> ((+) -1) >> getPos)
+                |> Maybe.withDefault Cmd.none
             )
 
         Next ->
             ( model
-            , case model.target of
-                Just target ->
-                    getPos (target.pos + 1)
-
-                Nothing ->
-                    Cmd.none
+            , model.target
+                |> Maybe.map (.pos >> ((+) 1) >> getPos)
+                |> Maybe.withDefault Cmd.none
             )
 
 
@@ -228,8 +222,7 @@ view model =
             [ onClick Previous
             , HA.disabled
                 (model.target
-                    |> Maybe.map .pos
-                    |> Maybe.map ((<=) 1)
+                    |> Maybe.map (.pos >> (<=) 1)
                     |> Maybe.withDefault True
                 )
             ]
