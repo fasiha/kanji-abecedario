@@ -178,17 +178,12 @@ update msg model =
             )
 
         Accept str ->
-            case model.target of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just target ->
-                    ( { model | selected = Set.empty }
-                    , record
-                        model.token
-                        target.target
-                        (String.split "," str)
-                    )
+            ( model
+            , model.target
+                |> Maybe.map
+                    (\target -> str |> String.split "," |> record model.token target.target)
+                |> Maybe.withDefault Cmd.none
+            )
 
 
 record : String -> String -> List String -> Cmd Msg
