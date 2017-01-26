@@ -77,7 +77,9 @@ app.get('/firstNoDeps', (req, res) => {
 
 app.get('/secured/userDeps/:target', (req, res) => {
   db.userDeps(req.params.target, req.user.sub)
-      .then(result => res.json(result))
+      .then(result => result.length === 0
+                          ? res.status(404).send('no rows found')
+                          : res.json(result))
       .catch(makeError(res, 'userDeps'));
 });
 

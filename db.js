@@ -106,11 +106,14 @@ function depsFor(target) {
 }
 
 function userDeps(target, user, cb) {
-  return myhash(user).then(hash => db.allAsync(`SELECT deps.dependency
-                                 FROM deps
-                                 WHERE deps.target = ? AND deps.user = ?
-                                 ORDER BY deps.dependency`,
-                                               [ target, hash ]));
+  return myhash(user)
+      .then(hash => db.allAsync(
+                `SELECT group_concat(deps.dependency) AS deps, target
+                 FROM deps
+                 WHERE deps.target = ? AND deps.user = ?
+                 ORDER BY deps.dependency`, // same sort order as depsFor
+                [ target, hash ]))
+      .then(result => result[0].deps ? result[0] : []);
 }
 
 function firstNoDeps() {

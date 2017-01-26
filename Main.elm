@@ -7,7 +7,7 @@ import Svg
 import Svg.Attributes exposing (viewBox, d, class)
 import Html.Events exposing (onClick, onInput)
 import Http
-import Maybe
+import Maybe exposing (withDefault)
 import Json.Decode as Decode
 import Json.Encode as Encode
 
@@ -45,6 +45,7 @@ type alias Model =
     , primitives : List Primitive
     , selected : Set.Set String
     , kanjis : Set.Set String
+    , userDeps : Maybe String
     }
 
 
@@ -56,8 +57,21 @@ init =
         []
         Set.empty
         Set.empty
+        Maybe.Nothing
     , Cmd.batch [ getPos 1, getPrimitives ]
     )
+
+
+type alias UserDeps =
+    -- NOT used in Model! Just for decoding JSON. Model will get `deps` field only.
+    { target : String, deps : String }
+
+
+userDepsDecoder : Decode.Decoder UserDeps
+userDepsDecoder =
+    Decode.map2 UserDeps
+        (Decode.field "target" Decode.string)
+        (Decode.field "deps" Decode.string)
 
 
 depsDecoder : Decode.Decoder Dependencies
@@ -99,6 +113,8 @@ type Msg
     | Next
     | Input String
     | Accept String
+    | AskForUserDeps
+    | GotUserDeps (Result Http.Error UserDeps)
 
 
 port login : String -> Cmd msg
@@ -114,13 +130,41 @@ update msg model =
             ( model, askFirstNoDeps )
 
         GotTarget (Ok target) ->
-            ( { model | target = Just target }, Cmd.none )
+            ( { model | target = Just target }
+            , if List.isEmpty target.deps then
+                Cmd.none
+              else
+                askForUserDeps model.token target.target
+            )
 
         GotTarget (Err err) ->
             case err of
                 -- Could be because of getPos/-1, getTarget/foo, or invalid record
                 Http.BadStatus res ->
                     ( { model | err = (toString err) }, Cmd.none )
+
+                _ ->
+                    ( { model | err = (toString err) }, Cmd.none )
+
+        AskForUserDeps ->
+            ( model
+            , model.target
+                |> Maybe.map (askForUserDeps model.token << .target)
+                |> withDefault Cmd.none
+            )
+
+        GotUserDeps (Ok deps) ->
+            ( if deps.target == (model.target |> Maybe.map .target |> withDefault "") then
+                { model | userDeps = Just deps.deps }
+              else
+                model
+            , Cmd.none
+            )
+
+        GotUserDeps (Err err) ->
+            case err of
+                Http.BadStatus res ->
+                    ( { model | userDeps = Nothing }, Cmd.none )
 
                 _ ->
                     ( { model | err = (toString err) }, Cmd.none )
@@ -162,14 +206,14 @@ update msg model =
             ( model
             , model.target
                 |> Maybe.map (.pos >> ((+) -1) >> getPos)
-                |> Maybe.withDefault Cmd.none
+                |> withDefault Cmd.none
             )
 
         Next ->
             ( model
             , model.target
                 |> Maybe.map (.pos >> ((+) 1) >> getPos)
-                |> Maybe.withDefault Cmd.none
+                |> withDefault Cmd.none
             )
 
         Input text ->
@@ -182,8 +226,25 @@ update msg model =
             , model.target
                 |> Maybe.map
                     (\target -> str |> String.split "," |> record model.token target.target)
-                |> Maybe.withDefault Cmd.none
+                |> withDefault Cmd.none
             )
+
+
+askForUserDeps : String -> String -> Cmd Msg
+askForUserDeps token target =
+    Http.send GotUserDeps
+        (Http.request
+            { method = "GET"
+            , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+            , url =
+                "http://localhost:3000/secured/userDeps/" ++ target
+            , body =
+                Http.emptyBody
+            , expect = Http.expectJson userDepsDecoder
+            , timeout = Nothing
+            , withCredentials = False
+            }
+        )
 
 
 record : String -> String -> List String -> Cmd Msg
@@ -205,7 +266,10 @@ record token target deps =
 
 getPrimitives : Cmd Msg
 getPrimitives =
-    Http.send GotPrimitives (Http.get "http://localhost:3000/data/paths.json" (Decode.list primitiveDecoder))
+    Http.send GotPrimitives
+        (Http.get "http://localhost:3000/data/paths.json"
+            (Decode.list primitiveDecoder)
+        )
 
 
 askFirstNoDeps : Cmd Msg
@@ -215,7 +279,10 @@ askFirstNoDeps =
 
 getPos : Int -> Cmd Msg
 getPos pos =
-    Http.send GotTarget (Http.get ("http://localhost:3000/getPos/" ++ (toString pos)) targetDecoder)
+    Http.send GotTarget
+        (Http.get ("http://localhost:3000/getPos/" ++ (toString pos))
+            targetDecoder
+        )
 
 
 
@@ -258,7 +325,7 @@ view model =
             , HA.disabled
                 (model.target
                     |> Maybe.map (.pos >> (>=) 1)
-                    |> Maybe.withDefault True
+                    |> withDefault True
                 )
             ]
             [ text "Previous kanji" ]
@@ -266,38 +333,58 @@ view model =
         , button [ onClick AskFirstNoDeps ] [ text "First kanji without deps" ]
         , button [ onClick Record ] [ text "Record" ]
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
-        , renderTarget model.target
+        , renderTarget model.target model.userDeps
         , renderPrimitives model.selected model.primitives
         , renderModel model
         ]
 
 
-renderTargetDeps : Target -> Html Msg
-renderTargetDeps target =
+renderTargetDeps : Target -> Maybe String -> Html Msg
+renderTargetDeps target maybeuserdeps =
     Html.ul []
         (List.map
             (\dep ->
-                Html.li []
-                    [ text
-                        (dep.depString
-                            ++ " ("
-                            ++ (toString dep.count)
-                            ++ " votes) "
+                let
+                    uservote =
+                        maybeuserdeps |> Maybe.map ((==) dep.depString) |> withDefault False
+                in
+                    Html.li
+                        (if uservote then
+                            [ class "uservote" ]
+                         else
+                            []
                         )
-                    , button [ onClick (Accept dep.depString) ] [ text "Accept" ]
-                    ]
+                        [ text
+                            (dep.depString
+                                ++ " ("
+                                ++ (toString dep.count)
+                                ++ " votes) "
+                            )
+                        , if uservote then
+                            text "(Your selection!)"
+                          else
+                            button [ onClick (Accept dep.depString) ] [ text "Accept" ]
+                        ]
             )
             target.deps
         )
 
 
-renderTarget : Maybe Target -> Html Msg
-renderTarget maybetarget =
+renderTarget : Maybe Target -> Maybe String -> Html Msg
+renderTarget maybetarget maybeuserdeps =
     case maybetarget of
         Just target ->
             div []
-                [ Html.h1 [] [ text ("Help us decompose " ++ target.target ++ "!") ]
-                , renderTargetDeps target
+                [ Html.h1 []
+                    [ text
+                        ("Help us decompose #"
+                            ++ (toString target.pos)
+                            ++ ": "
+                            ++ target.target
+                            ++ "!"
+                        )
+                    ]
+                , renderTargetDeps target maybeuserdeps
                 ]
 
         Nothing ->
