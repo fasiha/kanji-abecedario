@@ -164,8 +164,9 @@ update msg model =
         GotUserDeps (Err err) ->
             case err of
                 Http.BadStatus res ->
-                    ( { model | userDeps = Nothing }, Cmd.none )
+                    ( { model | err = (toString err), userDeps = Nothing }, Cmd.none )
 
+                -- ( { model | userDeps = Nothing }, Cmd.none )
                 _ ->
                     ( { model | err = (toString err) }, Cmd.none )
 
