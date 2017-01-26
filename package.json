@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "tape 'test/**/*-test.js'",
-    "min": "uglifyjs public/main.js --source-map public/main.map -c -o public/main.min.js"
+    "min": "webpack --config webpack.config.js"
   },
   "keywords": [],
   "author": "",
@@ -26,8 +26,9 @@
     "xml2js": "^0.4.17"
   },
   "devDependencies": {
+    "google-closure-compiler-js": "^20161201.0.1",
     "lodash": "^4.17.4",
     "tape": "^4.6.3",
-    "uglify-js": "^2.7.5"
+    "webpack": "^1.14.0"
   }
 }

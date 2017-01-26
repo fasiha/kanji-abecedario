@@ -330,7 +330,8 @@ view model =
             ]
             [ text "Previous kanji" ]
         , button [ onClick Next ] [ text "Next kanji" ]
-        , button [ onClick AskFirstNoDeps ] [ text "First kanji without deps" ]
+        , button [ onClick AskFirstNoDeps ] [ text "First kanji without any votes" ]
+        , button [] [ text "First kanji without my votes" ]
         , button [ onClick Record ] [ text "Record" ]
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
         , renderTarget model.target model.userDeps
