@@ -234,16 +234,30 @@ subscriptions model =
 -- VIEW
 
 
+renderModel : Model -> Html Msg
+renderModel model =
+    div []
+        [ text
+            (toString
+                { model
+                    | primitives = (List.take 1 model.primitives)
+                    , token = String.slice 0 5 model.token
+                }
+            )
+        ]
+
+
 view : Model -> Html Msg
 view model =
     div []
         [ button [ onClick Login ] [ text "Login from Elm" ]
         , button [] [ text "My kanji" ]
+        , button [] [ text "Jump to a kanji" ]
         , button
             [ onClick Previous
             , HA.disabled
                 (model.target
-                    |> Maybe.map (.pos >> (<=) 1)
+                    |> Maybe.map (.pos >> (>=) 1)
                     |> Maybe.withDefault True
                 )
             ]
@@ -252,17 +266,9 @@ view model =
         , button [ onClick AskFirstNoDeps ] [ text "First kanji without deps" ]
         , button [ onClick Record ] [ text "Record" ]
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
-        , div []
-            [ text
-                (toString
-                    { model
-                        | primitives = (List.take 1 model.primitives)
-                        , token = String.slice 0 5 model.token
-                    }
-                )
-            ]
         , renderTarget model.target
         , renderPrimitives model.selected model.primitives
+        , renderModel model
         ]
 
 
