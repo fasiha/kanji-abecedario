@@ -10,7 +10,8 @@ var printAndReturn = x => {
 
 tape("testing", test => {
 
-  db.firstNoDeps()
+  Promise.delay(100) // SQLite could still be initializating the db
+      .then(() => db.firstNoDeps())
       .then(printAndReturn)
       .then(_ => db.record("冫", 'test1', [ '語', '卜', '巾' ]))
       .then(_ => db.firstNoDeps())

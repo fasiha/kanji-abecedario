@@ -33,13 +33,13 @@ var allKanji = Object.keys(kanken)
                    .reduce((prev, curr) => prev + curr, '');
 // allKanji contains a giant string containing jouyou and jinmeiyou kanji.
 // It might contain some primitives, which we load next:
-var sources = JSON.parse(fs.readFileSync('data/sources.json', 'utf8'));
+var paths = JSON.parse(fs.readFileSync('data/paths.json', 'utf8'));
 
 var alphanumericToTarget = {};
-sources.sourcesTable.forEach(({col, row, printable}) => {
-  var key = col + row;
-  alphanumericToTarget[key.toUpperCase()] = printable;
-  alphanumericToTarget[key.toLowerCase()] = printable;
+paths.forEach(({heading, num, target}) => {
+  var key = heading + num;
+  alphanumericToTarget[key.toUpperCase()] = target;
+  alphanumericToTarget[key.toLowerCase()] = target;
 });
 
 // DB
@@ -60,11 +60,11 @@ db.runAsync(`PRAGMA foreign_keys = ON`)
     .then(_ => db.runAsync(
               `CREATE INDEX IF NOT EXISTS targetUser ON deps (target, user)`))
     .then(_ => {
-      var s = sources.sourcesTable.map(o => o.printable)
+      var s = paths.map(o => o.target)
                   .concat(allKanji.split(''))
                   .map(s => `("${s}")`)
                   .join(',');
-      return db.run(`INSERT OR IGNORE INTO targets VALUES ${s}`)
+      return db.runAsync(`INSERT OR IGNORE INTO targets VALUES ${s}`)
     });
 
 // SERVICES
