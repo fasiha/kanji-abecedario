@@ -145,6 +145,7 @@ type Msg
     | AskForUserDeps
     | GotUserDeps (Result Http.Error UserDeps)
     | UrlChange Navigation.Location
+    | AskForTarget
 
 
 port login : String -> Cmd msg
@@ -270,6 +271,18 @@ update msg model =
         UrlChange location ->
             ( model, Cmd.none )
 
+        AskForTarget ->
+            if Set.isEmpty model.kanjis then
+                ( model, Cmd.none )
+            else
+                ( model
+                , model.kanjis
+                    |> Set.toList
+                    |> List.head
+                    |> withDefault ""
+                    |> getTarget
+                )
+
 
 askForUserDeps : String -> String -> Cmd Msg
 askForUserDeps token target =
@@ -326,6 +339,11 @@ getPos pos =
         )
 
 
+getTarget : String -> Cmd Msg
+getTarget target =
+    Http.send GotTarget (Http.get ("http://localhost:3000/getTarget/" ++ target) targetDecoder)
+
+
 
 -- SUBSCRIPTIONS
 
@@ -360,7 +378,6 @@ view model =
     div []
         [ button [ onClick Login ] [ text "Login from Elm" ]
         , button [] [ text "My kanji" ]
-        , button [] [ text "Jump to a kanji" ]
         , button
             [ onClick Previous
             , HA.disabled
@@ -375,6 +392,7 @@ view model =
         , button [] [ text "First kanji without my votes" ]
         , button [ onClick Record ] [ text "Record" ]
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
+        , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
         , renderTarget model.target model.userDeps
         , renderPrimitives model.selected model.primitives
         , renderModel model
