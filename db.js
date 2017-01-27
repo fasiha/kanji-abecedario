@@ -50,7 +50,7 @@ var db = new sqlite3.Database('deps.db');
 db.runAsync(`PRAGMA foreign_keys = ON`)
     .then(
         _ => db.runAsync(
-            `CREATE TABLE IF NOT EXISTS targets (target TEXT PRIMARY KEY NOT NULL)`))
+            `CREATE TABLE IF NOT EXISTS targets (target TEXT PRIMARY KEY NOT NULL, primitive BOOLEAN)`))
     .then(_ => db.runAsync(`CREATE TABLE IF NOT EXISTS deps (
             target TEXT NOT NULL,
             user TEXT NOT NULL,
@@ -60,9 +60,9 @@ db.runAsync(`PRAGMA foreign_keys = ON`)
     .then(_ => db.runAsync(
               `CREATE INDEX IF NOT EXISTS targetUser ON deps (target, user)`))
     .then(_ => {
-      var s = paths.map(o => o.target)
-                  .concat(allKanji.split(''))
-                  .map(s => `("${s}")`)
+      var s = paths.map(o => [o.target, 1])
+                  .concat(allKanji.split('').map(s => [s, 1]))
+                  .map(([ s, i ]) => `("${s}", ${i})`)
                   .join(',');
       return db.runAsync(`INSERT OR IGNORE INTO targets VALUES ${s}`)
     });
@@ -122,6 +122,7 @@ function firstNoDeps() {
                  FROM targets
                  WHERE target NOT IN (SELECT DISTINCT target
                                       FROM deps)
+                 ORDER BY rowid
                  LIMIT 1`)
       .then(x => {
         if (x.length > 0) {
