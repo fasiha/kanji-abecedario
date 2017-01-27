@@ -10,11 +10,13 @@ import Http
 import Maybe exposing (withDefault)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Navigation
+import UrlParser as Url exposing ((</>), (<?>), s, int, stringParam, top)
 
 
 main : Program Never Model Msg
 main =
-    Html.program
+    Navigation.program UrlChange
         { init = init
         , view = view
         , update = update
@@ -49,8 +51,8 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Navigation.Location -> ( Model, Cmd Msg )
+init initialLocation =
     ( Model ""
         "invalid token"
         Maybe.Nothing
@@ -58,7 +60,17 @@ init =
         Set.empty
         Set.empty
         Maybe.Nothing
-    , Cmd.batch [ getPos 1, getPrimitives ]
+    , Cmd.batch
+        [ getPos
+            (case Url.parseHash route initialLocation of
+                Just (Pos pos) ->
+                    pos
+
+                _ ->
+                    1
+            )
+        , getPrimitives
+        ]
     )
 
 
@@ -98,6 +110,23 @@ primitiveDecoder =
 
 
 
+-- URL PARSING
+
+
+type Route
+    = Home
+    | Pos Int
+
+
+route : Url.Parser (Route -> a) a
+route =
+    Url.oneOf
+        [ Url.map Home top
+        , Url.map Pos (s "target" </> int)
+        ]
+
+
+
 -- UPDATE
 
 
@@ -115,6 +144,7 @@ type Msg
     | Accept String
     | AskForUserDeps
     | GotUserDeps (Result Http.Error UserDeps)
+    | UrlChange Navigation.Location
 
 
 port login : String -> Cmd msg
@@ -130,12 +160,19 @@ update msg model =
             ( model, askFirstNoDeps )
 
         GotTarget (Ok target) ->
-            ( { model | target = Just target }
-            , if List.isEmpty target.deps then
-                Cmd.none
-              else
-                askForUserDeps model.token target.target
-            )
+            let
+                url =
+                    "#/target/" ++ (toString target.pos)
+            in
+                ( { model | target = Just target }
+                , if List.isEmpty target.deps then
+                    Navigation.newUrl url
+                  else
+                    Cmd.batch
+                        [ Navigation.newUrl url
+                        , askForUserDeps model.token target.target
+                        ]
+                )
 
         GotTarget (Err err) ->
             case err of
@@ -229,6 +266,9 @@ update msg model =
                     (\target -> str |> String.split "," |> record model.token target.target)
                 |> withDefault Cmd.none
             )
+
+        UrlChange location ->
+            ( model, Cmd.none )
 
 
 askForUserDeps : String -> String -> Cmd Msg
