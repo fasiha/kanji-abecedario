@@ -6,7 +6,7 @@
   "scripts": {
     "test": "tape 'tests/**/*-test.js'",
     "min": "google-closure-compiler-js --compilationLevel SIMPLE --createSourceMap true public/main.js --assumeFunctionWrapper true > public/.min && mv public/.min public/main.min.js",
-    "watch": "fswatch -0 *.elm | xargs -0 -n 1 ./build.sh"
+    "watch": "fswatch -0 *.elm public/index.html | xargs -0 -n 1 ./build.sh"
   },
   "keywords": [],
   "author": "",

@@ -1,7 +1,6 @@
 *.svg
 node_modules/
 *.tsv
-*.json
 .ipynb_checkpoints/
 data/
 .env

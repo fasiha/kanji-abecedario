@@ -1,6 +1,6 @@
 port module Main exposing (..)
 
-import Html exposing (Html, button, div, text)
+import Html exposing (Html, button, div, text, a)
 import Html.Attributes as HA
 import Set
 import Svg
@@ -269,7 +269,21 @@ update msg model =
             )
 
         UrlChange location ->
-            ( model, Cmd.none )
+            let
+                thisroute =
+                    Url.parseHash route location
+            in
+                case thisroute of
+                    Just (Pos pos) ->
+                        ( model
+                        , if model.target |> Maybe.map (.pos >> ((/=) pos)) |> withDefault True then
+                            getPos pos
+                          else
+                            Cmd.none
+                        )
+
+                    _ ->
+                        ( model, Cmd.none )
 
         AskForTarget ->
             if Set.isEmpty model.kanjis then
@@ -396,6 +410,7 @@ view model =
         , renderTarget model.target model.userDeps
         , renderPrimitives model.selected model.primitives
         , renderModel model
+        , renderPrimitivesDispOnly model.primitives
         ]
 
 
@@ -473,3 +488,18 @@ renderPrimitives : Set.Set String -> List Primitive -> Html Msg
 renderPrimitives selected primitives =
     div [ HA.class "primitive-container" ]
         (List.map (renderPrimitive selected) primitives)
+
+
+renderPrimitiveDispOnly : Int -> Primitive -> Html Msg
+renderPrimitiveDispOnly pos primitive =
+    a [ HA.href ("#/target/" ++ (toString pos)) ]
+        [ Svg.svg
+            [ viewBox "0 0 109 109" ]
+            (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
+        ]
+
+
+renderPrimitivesDispOnly : List Primitive -> Html Msg
+renderPrimitivesDispOnly primitiveList =
+    div [ HA.class "primitive-container-disp" ]
+        (List.indexedMap renderPrimitiveDispOnly primitiveList)
