@@ -3,7 +3,6 @@ port module Main exposing (..)
 import Html exposing (Html, button, div, text, a)
 import Html.Attributes as HA
 import Set exposing (Set)
-import Array exposing (Array)
 import Svg
 import Svg.Attributes exposing (viewBox, d, class)
 import Html.Events exposing (onClick, onInput)
@@ -12,7 +11,7 @@ import Maybe exposing (withDefault)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Navigation
-import UrlParser as Url exposing ((</>), (<?>), s, int, stringParam, top)
+import UrlParser as Url exposing ((</>), (<?>), s, int, string, top)
 
 
 main : Program Never Model Msg
@@ -49,7 +48,7 @@ type alias Model =
     , selected : Set String
     , selectedKanjis : Set String
     , userDeps : Maybe String
-    , kanjiOnly : Array String
+    , kanjiOnly : List String
     }
 
 
@@ -62,16 +61,18 @@ init initialLocation =
         Set.empty
         Set.empty
         Nothing
-        Array.empty
+        []
     , Cmd.batch
-        [ getPos
-            (case Url.parseHash route initialLocation of
-                Just (Pos pos) ->
-                    pos
+        [ (case Url.parseHash route initialLocation of
+            Just (RoutePos pos) ->
+                getPos pos
 
-                _ ->
-                    1
-            )
+            Just (RouteTarget target) ->
+                getTarget target
+
+            _ ->
+                getPos 1
+          )
         , getPrimitives
         , getKanjiOnly
         ]
@@ -119,15 +120,30 @@ primitiveDecoder =
 
 type Route
     = Home
-    | Pos Int
+    | RoutePos Int
+    | RouteTarget String
 
 
 route : Url.Parser (Route -> a) a
 route =
     Url.oneOf
         [ Url.map Home top
-        , Url.map Pos (s "target" </> int)
+        , Url.map RoutePos (s "pos" </> int)
+        , Url.map RouteTarget (s "target" </> string)
         ]
+
+
+routeToFragment : Route -> String
+routeToFragment route =
+    case route of
+        RoutePos i ->
+            "#pos/" ++ (toString i)
+
+        RouteTarget s ->
+            "#target/" ++ s
+
+        _ ->
+            ""
 
 
 
@@ -150,7 +166,7 @@ type Msg
     | GotUserDeps (Result Http.Error UserDeps)
     | UrlChange Navigation.Location
     | AskForTarget
-    | GotKanjiOnly (Result Http.Error (Array String))
+    | GotKanjiOnly (Result Http.Error (List String))
 
 
 port login : String -> Cmd msg
@@ -168,7 +184,7 @@ update msg model =
         GotTarget (Ok target) ->
             let
                 url =
-                    "#/target/" ++ (toString target.pos)
+                    routeToFragment (RoutePos target.pos)
             in
                 ( { model | target = Just target }
                 , if List.isEmpty target.deps then
@@ -279,10 +295,18 @@ update msg model =
                     Url.parseHash route location
             in
                 case thisroute of
-                    Just (Pos pos) ->
+                    Just (RoutePos pos) ->
                         ( model
                         , if model.target |> Maybe.map (.pos >> ((/=) pos)) |> withDefault True then
                             getPos pos
+                          else
+                            Cmd.none
+                        )
+
+                    Just (RouteTarget target) ->
+                        ( model
+                        , if model.target |> Maybe.map (.target >> ((/=) target)) |> withDefault True then
+                            getTarget target
                           else
                             Cmd.none
                         )
@@ -355,7 +379,7 @@ getKanjiOnly : Cmd Msg
 getKanjiOnly =
     Http.send GotKanjiOnly
         (Http.get "http://localhost:3000/kanjiOnly"
-            (Decode.array Decode.string)
+            (Decode.list Decode.string)
         )
 
 
@@ -399,9 +423,9 @@ renderModel model =
         [ text
             (toString
                 { model
-                    | primitives = (List.take 1 model.primitives)
+                    | primitives = List.take 1 model.primitives
                     , token = String.slice 0 5 model.token
-                    , kanjiOnly = Array.slice 0 10 model.kanjiOnly
+                    , kanjiOnly = List.take 10 model.kanjiOnly
                 }
             )
         ]
@@ -430,6 +454,7 @@ view model =
         , renderTarget model.target model.userDeps
         , renderPrimitives model.selected model.primitives
         , renderPrimitivesDispOnly model.primitives
+        , renderKanjis model.kanjiOnly
         , renderModel model
         ]
 
@@ -512,7 +537,7 @@ renderPrimitives selected primitives =
 
 renderPrimitiveDispOnly : Int -> Primitive -> Html Msg
 renderPrimitiveDispOnly pos primitive =
-    a [ HA.href ("#/target/" ++ (toString (1 + pos))) ]
+    a [ HA.href <| routeToFragment <| RoutePos <| 1 + pos ]
         [ Svg.svg
             [ viewBox "0 0 109 109" ]
             (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
@@ -524,4 +549,18 @@ renderPrimitivesDispOnly primitiveList =
     div [ HA.class "primitive-container-disp" ]
         ((Html.h2 [] [ text "Jump to a primitive to tag it!" ])
             :: (List.indexedMap renderPrimitiveDispOnly primitiveList)
+        )
+
+
+renderKanji : String -> Html Msg
+renderKanji target =
+    a [ HA.href <| routeToFragment <| RouteTarget target ]
+        [ text target ]
+
+
+renderKanjis : List String -> Html Msg
+renderKanjis stringList =
+    div [ HA.class "kanji-container" ]
+        ((Html.h2 [] [ text "Jump to a kanji!" ])
+            :: (List.map renderKanji stringList)
         )

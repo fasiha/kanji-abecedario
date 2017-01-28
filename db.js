@@ -53,7 +53,7 @@ function makeListNonPrimitives(primitives, kanjis) {
     if (!seen.has(target)) {
       seen.add(target);
       if (kanjiSet.has(target)) {
-        list.push(target);
+        list.push(target); // {target, rowid : seen.size}
       }
     }
   });
@@ -61,7 +61,6 @@ function makeListNonPrimitives(primitives, kanjis) {
 }
 var kanjiDbOrder =
     makeListNonPrimitives(paths.map(o => o.target), allKanji.split(''));
-
 
 // DB
 

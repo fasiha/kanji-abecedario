@@ -12,7 +12,7 @@ var printAndReturn = x => {
 tape("testing", test => {
 
   Promise
-      .delay(500) // SQLite could still be initializating the db
+      .delay(200) // SQLite could still be initializating the db
       .then(() => db.firstNoDeps())
       .then(printAndReturn)
       .then(_ => db.record("冫", 'test1', [ '語', '卜', '巾' ]))
@@ -32,10 +32,11 @@ tape("testing", test => {
       .then(printAndReturn)
       .then(_ => db.getPos(100))
       .then(printAndReturn)
-      .then(
-          _ => db.db.allAsync(`SELECT target FROM targets WHERE primitive = 0`))
+      .then(_ => db.db.allAsync(
+                `SELECT target, rowid FROM targets WHERE primitive = 0`))
       .then(gold => {
-        assert(gold.map(x => x.target).join('') === db.kanjiOnly.join(''));
+        assert(JSON.stringify(gold.map(o => o.target)) ===
+               JSON.stringify(db.kanjiOnly));
       })
       .catch(console.log.bind(console));
 
