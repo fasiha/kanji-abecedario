@@ -2,7 +2,8 @@ port module Main exposing (..)
 
 import Html exposing (Html, button, div, text, a)
 import Html.Attributes as HA
-import Set
+import Set exposing (Set)
+import Array exposing (Array)
 import Svg
 import Svg.Attributes exposing (viewBox, d, class)
 import Html.Events exposing (onClick, onInput)
@@ -45,9 +46,10 @@ type alias Model =
     , token : String
     , target : Maybe Target
     , primitives : List Primitive
-    , selected : Set.Set String
-    , kanjis : Set.Set String
+    , selected : Set String
+    , selectedKanjis : Set String
     , userDeps : Maybe String
+    , kanjiOnly : Array String
     }
 
 
@@ -55,11 +57,12 @@ init : Navigation.Location -> ( Model, Cmd Msg )
 init initialLocation =
     ( Model ""
         "invalid token"
-        Maybe.Nothing
+        Nothing
         []
         Set.empty
         Set.empty
-        Maybe.Nothing
+        Nothing
+        Array.empty
     , Cmd.batch
         [ getPos
             (case Url.parseHash route initialLocation of
@@ -70,6 +73,7 @@ init initialLocation =
                     1
             )
         , getPrimitives
+        , getKanjiOnly
         ]
     )
 
@@ -146,6 +150,7 @@ type Msg
     | GotUserDeps (Result Http.Error UserDeps)
     | UrlChange Navigation.Location
     | AskForTarget
+    | GotKanjiOnly (Result Http.Error (Array String))
 
 
 port login : String -> Cmd msg
@@ -238,7 +243,7 @@ update msg model =
                     , record
                         model.token
                         target.target
-                        (Set.toList <| Set.union model.selected model.kanjis)
+                        (Set.toList <| Set.union model.selected model.selectedKanjis)
                     )
 
         Previous ->
@@ -256,7 +261,7 @@ update msg model =
             )
 
         Input text ->
-            ( { model | kanjis = text |> String.split "" |> Set.fromList }
+            ( { model | selectedKanjis = text |> String.split "" |> Set.fromList }
             , Cmd.none
             )
 
@@ -286,16 +291,22 @@ update msg model =
                         ( model, Cmd.none )
 
         AskForTarget ->
-            if Set.isEmpty model.kanjis then
+            if Set.isEmpty model.selectedKanjis then
                 ( model, Cmd.none )
             else
                 ( model
-                , model.kanjis
+                , model.selectedKanjis
                     |> Set.toList
                     |> List.head
                     |> withDefault ""
                     |> getTarget
                 )
+
+        GotKanjiOnly (Ok arr) ->
+            ( { model | kanjiOnly = arr }, Cmd.none )
+
+        GotKanjiOnly (Err err) ->
+            ( { model | err = toString err }, Cmd.none )
 
 
 askForUserDeps : String -> String -> Cmd Msg
@@ -337,6 +348,14 @@ getPrimitives =
     Http.send GotPrimitives
         (Http.get "http://localhost:3000/data/paths.json"
             (Decode.list primitiveDecoder)
+        )
+
+
+getKanjiOnly : Cmd Msg
+getKanjiOnly =
+    Http.send GotKanjiOnly
+        (Http.get "http://localhost:3000/kanjiOnly"
+            (Decode.array Decode.string)
         )
 
 
@@ -382,6 +401,7 @@ renderModel model =
                 { model
                     | primitives = (List.take 1 model.primitives)
                     , token = String.slice 0 5 model.token
+                    , kanjiOnly = Array.slice 0 10 model.kanjiOnly
                 }
             )
         ]
@@ -466,7 +486,7 @@ renderTarget maybetarget maybeuserdeps =
             div [] [ text "(Waiting for network)" ]
 
 
-renderPrimitive : Set.Set String -> Primitive -> Html Msg
+renderPrimitive : Set String -> Primitive -> Html Msg
 renderPrimitive selecteds primitive =
     Svg.svg
         [ viewBox "0 0 109 109"
@@ -484,7 +504,7 @@ renderPrimitive selecteds primitive =
         (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
-renderPrimitives : Set.Set String -> List Primitive -> Html Msg
+renderPrimitives : Set String -> List Primitive -> Html Msg
 renderPrimitives selected primitives =
     div [ HA.class "primitive-container" ]
         (List.map (renderPrimitive selected) primitives)
