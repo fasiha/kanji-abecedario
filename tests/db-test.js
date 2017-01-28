@@ -1,4 +1,5 @@
 "use strict";
+var assert = require('assert');
 var Promise = require("bluebird");
 var tape = require("tape");
 var db = require("../db.js");
@@ -10,7 +11,8 @@ var printAndReturn = x => {
 
 tape("testing", test => {
 
-  Promise.delay(100) // SQLite could still be initializating the db
+  Promise
+      .delay(500) // SQLite could still be initializating the db
       .then(() => db.firstNoDeps())
       .then(printAndReturn)
       .then(_ => db.record("冫", 'test1', [ '語', '卜', '巾' ]))
@@ -30,6 +32,11 @@ tape("testing", test => {
       .then(printAndReturn)
       .then(_ => db.getPos(100))
       .then(printAndReturn)
+      .then(
+          _ => db.db.allAsync(`SELECT target FROM targets WHERE primitive = 0`))
+      .then(gold => {
+        assert(gold.map(x => x.target).join('') === db.kanjiOnly.join(''));
+      })
       .catch(console.log.bind(console));
 
   test.end();

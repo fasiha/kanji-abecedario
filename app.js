@@ -99,6 +99,8 @@ app.get('/getTarget/:target', (req, res) => {
       .catch(makeError(res, 'getTarget'));
 });
 
+app.get('/kanjiOnly', (req, res) => { res.json(db.kanjiOnly); });
+
 var port = process.env.PORT || 3000;
 
 http.createServer(app).listen(

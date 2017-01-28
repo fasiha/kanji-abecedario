@@ -409,8 +409,8 @@ view model =
         , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
         , renderTarget model.target model.userDeps
         , renderPrimitives model.selected model.primitives
-        , renderModel model
         , renderPrimitivesDispOnly model.primitives
+        , renderModel model
         ]
 
 
@@ -492,7 +492,7 @@ renderPrimitives selected primitives =
 
 renderPrimitiveDispOnly : Int -> Primitive -> Html Msg
 renderPrimitiveDispOnly pos primitive =
-    a [ HA.href ("#/target/" ++ (toString pos)) ]
+    a [ HA.href ("#/target/" ++ (toString (1 + pos))) ]
         [ Svg.svg
             [ viewBox "0 0 109 109" ]
             (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
@@ -502,4 +502,6 @@ renderPrimitiveDispOnly pos primitive =
 renderPrimitivesDispOnly : List Primitive -> Html Msg
 renderPrimitivesDispOnly primitiveList =
     div [ HA.class "primitive-container-disp" ]
-        (List.indexedMap renderPrimitiveDispOnly primitiveList)
+        ((Html.h2 [] [ text "Jump to a primitive to tag it!" ])
+            :: (List.indexedMap renderPrimitiveDispOnly primitiveList)
+        )

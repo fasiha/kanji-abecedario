@@ -42,6 +42,27 @@ paths.forEach(({heading, num, target}) => {
   alphanumericToTarget[key.toLowerCase()] = target;
 });
 
+// I hate to replicate in JS a SQL query but I don't want to wait for SQLite to
+// get set up before getting this data. This function returns the equivalent of
+// sqlite> SELECT target FROM targets WHERE primitive = 0;
+function makeListNonPrimitives(primitives, kanjis) {
+  var seen = new Set([]);
+  var list = [];
+  var kanjiSet = new Set(allKanji.split(''));
+  primitives.concat(kanjis).forEach(target => {
+    if (!seen.has(target)) {
+      seen.add(target);
+      if (kanjiSet.has(target)) {
+        list.push(target);
+      }
+    }
+  });
+  return list;
+}
+var kanjiDbOrder =
+    makeListNonPrimitives(paths.map(o => o.target), allKanji.split(''));
+
+
 // DB
 
 var db = new sqlite3.Database('deps.db');
@@ -60,8 +81,10 @@ db.runAsync(`PRAGMA foreign_keys = ON`)
     .then(_ => db.runAsync(
               `CREATE INDEX IF NOT EXISTS targetUser ON deps (target, user)`))
     .then(_ => {
-      var s = paths.map(o => [o.target, 1])
-                  .concat(allKanji.split('').map(s => [s, 1]))
+      var kanjiSet = new Set(allKanji.split(''));
+      var s = paths.map(o => [o.target, !kanjiSet.has(o.target) ? 1 : 0])
+                  .concat(allKanji.split('').map(
+                      s => [s, !kanjiSet.has(s) ? 1 : 0]))
                   .map(([ s, i ]) => `("${s}", ${i})`)
                   .join(',');
       return db.runAsync(`INSERT OR IGNORE INTO targets VALUES ${s}`)
@@ -165,5 +188,6 @@ module.exports = {
   userDeps,
   getPos,
   getTarget,
+  kanjiOnly : kanjiDbOrder,
   cleanup : (cb) => db.close(cb),
 };
