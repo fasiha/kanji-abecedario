@@ -3,6 +3,7 @@ port module Main exposing (..)
 import Html exposing (Html, button, div, text, a)
 import Html.Attributes as HA
 import Set exposing (Set)
+import Array exposing (Array)
 import Svg
 import Svg.Attributes exposing (viewBox, d, class)
 import Html.Events exposing (onClick, onInput)
@@ -44,7 +45,7 @@ type alias Model =
     { err : String
     , token : String
     , target : Maybe Target
-    , primitives : List Primitive
+    , primitives : Array Primitive
     , selected : Set String
     , selectedKanjis : Set String
     , userDeps : Maybe String
@@ -57,7 +58,7 @@ init initialLocation =
     ( Model ""
         "invalid token"
         Nothing
-        []
+        Array.empty
         Set.empty
         Set.empty
         Nothing
@@ -155,7 +156,7 @@ type Msg
     | AskFirstNoDeps
     | GotTarget (Result Http.Error Target)
     | GotLocalStorage String
-    | GotPrimitives (Result Http.Error (List Primitive))
+    | GotPrimitives (Result Http.Error (Array Primitive))
     | SelectPrimitive String
     | Record
     | Previous
@@ -371,7 +372,7 @@ getPrimitives : Cmd Msg
 getPrimitives =
     Http.send GotPrimitives
         (Http.get "http://localhost:3000/data/paths.json"
-            (Decode.list primitiveDecoder)
+            (Decode.array primitiveDecoder)
         )
 
 
@@ -423,7 +424,7 @@ renderModel model =
         [ text
             (toString
                 { model
-                    | primitives = List.take 1 model.primitives
+                    | primitives = Array.slice 0 1 model.primitives
                     , token = String.slice 0 5 model.token
                     , kanjiOnly = List.take 10 model.kanjiOnly
                 }
@@ -499,9 +500,8 @@ renderTarget maybetarget maybeuserdeps =
                     [ text
                         ("Help us decompose #"
                             ++ (toString target.pos)
-                            ++ ": "
+                            ++ "! "
                             ++ target.target
-                            ++ "!"
                         )
                     ]
                 , renderTargetDeps target maybeuserdeps
@@ -529,10 +529,10 @@ renderPrimitive selecteds primitive =
         (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
-renderPrimitives : Set String -> List Primitive -> Html Msg
+renderPrimitives : Set String -> Array Primitive -> Html Msg
 renderPrimitives selected primitives =
     div [ HA.class "primitive-container" ]
-        (List.map (renderPrimitive selected) primitives)
+        (List.map (renderPrimitive selected) <| Array.toList primitives)
 
 
 renderPrimitiveDispOnly : Int -> Primitive -> Html Msg
@@ -544,11 +544,11 @@ renderPrimitiveDispOnly pos primitive =
         ]
 
 
-renderPrimitivesDispOnly : List Primitive -> Html Msg
+renderPrimitivesDispOnly : Array Primitive -> Html Msg
 renderPrimitivesDispOnly primitiveList =
     div [ HA.class "primitive-container-disp" ]
         ((Html.h2 [] [ text "Jump to a primitive to tag it!" ])
-            :: (List.indexedMap renderPrimitiveDispOnly primitiveList)
+            :: (List.indexedMap renderPrimitiveDispOnly <| Array.toList primitiveList)
         )
 
 
