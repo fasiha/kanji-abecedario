@@ -452,7 +452,7 @@ view model =
         , button [ onClick Record ] [ text "Record" ]
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
         , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
-        , renderTarget model.target model.userDeps
+        , renderTarget model.target model.userDeps model.primitives
         , renderPrimitives model.selected model.primitives
         , renderPrimitivesDispOnly model.primitives
         , renderKanjis model.kanjiOnly
@@ -491,8 +491,8 @@ renderTargetDeps target maybeuserdeps =
         )
 
 
-renderTarget : Maybe Target -> Maybe String -> Html Msg
-renderTarget maybetarget maybeuserdeps =
+renderTarget : Maybe Target -> Maybe String -> Array Primitive -> Html Msg
+renderTarget maybetarget maybeuserdeps primitives =
     case maybetarget of
         Just target ->
             div []
@@ -501,8 +501,10 @@ renderTarget maybetarget maybeuserdeps =
                         ("Help us decompose #"
                             ++ (toString target.pos)
                             ++ "! "
-                            ++ target.target
                         )
+                    , Array.get (target.pos - 1) primitives
+                        |> Maybe.map (svgPrimitive "heading-svg")
+                        |> withDefault (text target.target)
                     ]
                 , renderTargetDeps target maybeuserdeps
                 ]
@@ -535,13 +537,17 @@ renderPrimitives selected primitives =
         (List.map (renderPrimitive selected) <| Array.toList primitives)
 
 
+svgPrimitive : String -> Primitive -> Html Msg
+svgPrimitive classname primitive =
+    Svg.svg
+        [ viewBox "0 0 109 109", class classname ]
+        (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
+
+
 renderPrimitiveDispOnly : Int -> Primitive -> Html Msg
 renderPrimitiveDispOnly pos primitive =
     a [ HA.href <| routeToFragment <| RoutePos <| 1 + pos ]
-        [ Svg.svg
-            [ viewBox "0 0 109 109" ]
-            (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
-        ]
+        [ svgPrimitive "" primitive ]
 
 
 renderPrimitivesDispOnly : Array Primitive -> Html Msg
