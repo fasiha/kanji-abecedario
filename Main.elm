@@ -379,7 +379,7 @@ getPrimitives =
 getKanjiOnly : Cmd Msg
 getKanjiOnly =
     Http.send GotKanjiOnly
-        (Http.get "http://localhost:3000/data/jouyou_jinmeiyou.txt" Decode.string)
+        (Http.get "http://localhost:3000/data/jouyou_jinmeiyou.json" Decode.string)
 
 
 askFirstNoDeps : Cmd Msg
