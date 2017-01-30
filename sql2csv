@@ -1,0 +1,9 @@
+for table in targets; do
+    sqlite3 $1 <<EOF
+.headers on
+.mode csv
+.output $table.csv
+select * from $table;
+EOF
+    done
+

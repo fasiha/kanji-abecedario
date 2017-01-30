@@ -167,7 +167,7 @@ type Msg
     | GotUserDeps (Result Http.Error UserDeps)
     | UrlChange Navigation.Location
     | AskForTarget
-    | GotKanjiOnly (Result Http.Error (List String))
+    | GotKanjiOnly (Result Http.Error String)
 
 
 port login : String -> Cmd msg
@@ -327,8 +327,8 @@ update msg model =
                     |> getTarget
                 )
 
-        GotKanjiOnly (Ok arr) ->
-            ( { model | kanjiOnly = arr }, Cmd.none )
+        GotKanjiOnly (Ok str) ->
+            ( { model | kanjiOnly = String.toList str |> List.map String.fromChar }, Cmd.none )
 
         GotKanjiOnly (Err err) ->
             ( { model | err = toString err }, Cmd.none )
@@ -371,7 +371,7 @@ record token target deps =
 getPrimitives : Cmd Msg
 getPrimitives =
     Http.send GotPrimitives
-        (Http.get "http://localhost:3000/data/paths.json"
+        (Http.get "http://localhost:3000/data/pathsNonKanji.json"
             (Decode.array primitiveDecoder)
         )
 
@@ -379,9 +379,7 @@ getPrimitives =
 getKanjiOnly : Cmd Msg
 getKanjiOnly =
     Http.send GotKanjiOnly
-        (Http.get "http://localhost:3000/kanjiOnly"
-            (Decode.list Decode.string)
-        )
+        (Http.get "http://localhost:3000/data/jouyou_jinmeiyou.txt" Decode.string)
 
 
 askFirstNoDeps : Cmd Msg

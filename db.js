@@ -23,44 +23,16 @@ var stringSetDiff = (a, b) => {
   return b.split('').filter(s => !aset.has(s)).join('');
 };
 var kanken = JSON.parse(fs.readFileSync('data/kanken.json', 'utf8'));
-var jinmeiyou =
-    stringSetDiff(Object.values(kanken).join(''),
-                  fs.readFileSync('data/jinmeiyou.txt', 'utf8').trim());
-kanken['0'] = jinmeiyou;
 var allKanji = Object.keys(kanken)
                    .sort((a, b) => (+b) - (+a)) // descending (10 first, 9, ...)
                    .map(k => kanken[k])
-                   .reduce((prev, curr) => prev + curr, '');
+                   .reduce((prev, curr) => prev + curr);
 // allKanji contains a giant string containing jouyou and jinmeiyou kanji.
 // It might contain some primitives, which we load next:
-var paths = JSON.parse(fs.readFileSync('data/paths.json', 'utf8'));
-
-var alphanumericToTarget = {};
-paths.forEach(({heading, num, target}) => {
-  var key = heading + num;
-  alphanumericToTarget[key.toUpperCase()] = target;
-  alphanumericToTarget[key.toLowerCase()] = target;
-});
-
-// I hate to replicate in JS a SQL query but I don't want to wait for SQLite to
-// get set up before getting this data. This function returns the equivalent of
-// sqlite> SELECT target FROM targets WHERE primitive = 0;
-function makeListNonPrimitives(primitives, kanjis) {
-  var seen = new Set([]);
-  var list = [];
-  var kanjiSet = new Set(allKanji.split(''));
-  primitives.concat(kanjis).forEach(target => {
-    if (!seen.has(target)) {
-      seen.add(target);
-      if (kanjiSet.has(target)) {
-        list.push(target); // {target, rowid : seen.size}
-      }
-    }
-  });
-  return list;
-}
-var kanjiDbOrder =
-    makeListNonPrimitives(paths.map(o => o.target), allKanji.split(''));
+var paths = JSON.parse(fs.readFileSync('data/pathsNonKanji.json', 'utf8'));
+// Strip real kanji from primitives list.
+var kanjiSet = new Set(allKanji.split(''));
+paths = paths.filter(o => !kanjiSet.has(o.target));
 
 // DB
 
@@ -80,10 +52,8 @@ db.runAsync(`PRAGMA foreign_keys = ON`)
     .then(_ => db.runAsync(
               `CREATE INDEX IF NOT EXISTS targetUser ON deps (target, user)`))
     .then(_ => {
-      var kanjiSet = new Set(allKanji.split(''));
-      var s = paths.map(o => [o.target, !kanjiSet.has(o.target) ? 1 : 0])
-                  .concat(allKanji.split('').map(
-                      s => [s, !kanjiSet.has(s) ? 1 : 0]))
+      var s = paths.map(o => [o.target, 1])
+                  .concat(allKanji.split('').map(s => [s, 0]))
                   .map(([ s, i ]) => `("${s}", ${i})`)
                   .join(',');
       return db.runAsync(`INSERT OR IGNORE INTO targets VALUES ${s}`)
@@ -96,7 +66,7 @@ function cleanDeps(depsArray) {
   // targets, and sort.
   return Array.from(new Set(depsArray))
       .filter(s => !s.match(/^\s*$/))
-      .map(s => alphanumericToTarget[s.trim()] || s.trim())
+      .map(s => s.trim())
       .sort();
 }
 
@@ -187,6 +157,6 @@ module.exports = {
   userDeps,
   getPos,
   getTarget,
-  kanjiOnly : kanjiDbOrder,
+  kanjiOnly : allKanji.split(''),
   cleanup : (cb) => db.close(cb),
 };

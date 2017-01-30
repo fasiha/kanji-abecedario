@@ -25,7 +25,7 @@ tape("testing", test => {
       ]))
       .then(_ => db.depsFor('冫'))
       .then(printAndReturn)
-      .then(_ => db.record("氵", 'test2', [ 'A1', 'A2' ]))
+      .then(_ => db.record("氵", 'test2', [ '道', '雨' ]))
       .then(_ => db.firstNoDeps())
       .then(printAndReturn)
       .then(_ => db.getPos(1))

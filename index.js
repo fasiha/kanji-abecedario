@@ -337,6 +337,11 @@ paths.reduceRight((_, c, i) => {
 var uniquePaths = paths.filter((o, i) => i === seenTargets.get(o.target));
 fs.writeFileSync('data/paths.json', JSON.stringify(uniquePaths));
 
+var kanken = JSON.parse(fs.readFileSync('data/kanken.json', 'utf8'));
+var kanjiSet = new Set(Object.values(kanken).reduce((p,c)=>p+c).split(''));
+var kpaths = uniquePaths.filter(o => !kanjiSet.has(o.target));
+fs.writeFileSync('data/pathsNonKanji.json', JSON.stringify(kpaths));
+
 // The rest of this is for making additional files, some for Postgres
 // (unused),
 // but others for general data analysis.
