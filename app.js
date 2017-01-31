@@ -75,6 +75,14 @@ app.get('/firstNoDeps', (req, res) => {
       .catch(makeError(res, 'firstNoDeps'));
 });
 
+app.get('/secured/firstNoDeps', (req, res) => {
+  db.firstNoDepsUser(req.user.sub)
+      .then(result => result.length === 0
+                          ? res.status(404).send('no rows found')
+                          : res.json(result))
+      .catch(makeError(res, 'secured/firstNoDeps'));
+});
+
 app.get('/secured/userDeps/:target', (req, res) => {
   db.userDeps(req.params.target, req.user.sub)
       .then(result => result.length === 0

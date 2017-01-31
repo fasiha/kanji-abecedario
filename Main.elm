@@ -154,6 +154,7 @@ routeToFragment route =
 type Msg
     = Login
     | AskFirstNoDeps
+    | AskFirstNoDepsUser
     | GotTarget (Result Http.Error Target)
     | GotLocalStorage String
     | GotPrimitives (Result Http.Error (Array Primitive))
@@ -181,6 +182,9 @@ update msg model =
 
         AskFirstNoDeps ->
             ( model, askFirstNoDeps )
+
+        AskFirstNoDepsUser ->
+            ( model, askFirstNoDepsUser model.token )
 
         GotTarget (Ok target) ->
             let
@@ -387,6 +391,23 @@ askFirstNoDeps =
     Http.send GotTarget (Http.get "http://localhost:3000/firstNoDeps" targetDecoder)
 
 
+askFirstNoDepsUser : String -> Cmd Msg
+askFirstNoDepsUser token =
+    Http.send GotTarget
+        (Http.request
+            { method = "GET"
+            , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+            , url =
+                "http://localhost:3000/secured/firstNoDeps"
+            , body =
+                Http.emptyBody
+            , expect = Http.expectJson targetDecoder
+            , timeout = Nothing
+            , withCredentials = False
+            }
+        )
+
+
 getPos : Int -> Cmd Msg
 getPos pos =
     Http.send GotTarget
@@ -446,7 +467,7 @@ view model =
             [ text "Previous kanji" ]
         , button [ onClick Next ] [ text "Next kanji" ]
         , button [ onClick AskFirstNoDeps ] [ text "First kanji without any votes" ]
-        , button [] [ text "First kanji without my votes" ]
+        , button [ onClick AskFirstNoDepsUser ] [ text "First kanji without my vote" ]
         , button [ onClick Record ] [ text "Record" ]
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
         , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
