@@ -1,15 +1,15 @@
 # Todo
 
-- [ ] Show list of all my votes
 - [ ] Show proper error when submitting bad “free decompositions”
 - [ ] Show SVGs in dependencies.
 - [ ] CSS-ify primitives/kanji list
 - [ ] Easy lookup of primitives by existing decompositions
 - [ ] Event sourcing: store events with Dat and rebuild the state at each Node startup.
-- [ ] Show first kanji without my vote.
 
 Done
 
+- [x] Show list of all my votes
+- [x] Show first kanji without my vote.
 - [x] Show my vote for a kanji
 - [x] Implement “Jump to kanji”
 - [x] Add router, i.e., `#/13`.
