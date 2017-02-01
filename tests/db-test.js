@@ -28,6 +28,7 @@ tape("testing", test => {
       .then(_ => db.record("氵", 'test2', [ '道', '雨' ]))
       .then(_ => db.firstNoDeps())
       .then(printAndReturn)
+      .then(_=>db.record("丬", "test4", "目耳口花".split('')))
       .then(_ => db.getPos(1))
       .then(printAndReturn)
       .then(_ => db.getPos(100))

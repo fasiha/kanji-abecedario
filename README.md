@@ -1,7 +1,7 @@
 # Todo
 
 - [ ] Show proper error when submitting bad “free decompositions”
-- [ ] Show SVGs in dependencies.
+- [x] Show SVGs in dependencies.
 - [ ] CSS-ify primitives/kanji list
 - [ ] Easy lookup of primitives by existing decompositions
 - [ ] Event sourcing: store events with Dat and rebuild the state at each Node startup.

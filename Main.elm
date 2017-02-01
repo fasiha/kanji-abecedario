@@ -1,11 +1,11 @@
 port module Main exposing (..)
 
-import Html exposing (Html, button, div, text, a)
+import Html exposing (Html, button, div, text, a, span)
 import Html.Attributes as HA
 import Set exposing (Set)
-import Array exposing (Array)
+import Dict exposing (Dict)
 import Svg
-import Svg.Attributes exposing (viewBox, d, class)
+import Svg.Attributes as SA exposing (viewBox, d, class)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Maybe exposing (withDefault)
@@ -38,14 +38,14 @@ type alias Target =
 
 
 type alias Primitive =
-    { paths : List String, target : String, heading : String }
+    { i : Int, paths : List String, target : String, heading : String }
 
 
 type alias Model =
     { err : String
     , token : String
     , target : Maybe Target
-    , primitives : Array Primitive
+    , primitives : Dict String Primitive
     , selected : Set String
     , selectedKanjis : Set String
     , userDeps : Maybe String
@@ -59,7 +59,7 @@ init initialLocation =
     ( Model ""
         "invalid token"
         Nothing
-        Array.empty
+        Dict.empty
         Set.empty
         Set.empty
         Nothing
@@ -111,7 +111,7 @@ targetDecoder =
 
 primitiveDecoder : Decode.Decoder Primitive
 primitiveDecoder =
-    Decode.map3 Primitive
+    Decode.map3 (Primitive -1)
         (Decode.field "paths" (Decode.list Decode.string))
         (Decode.field "target" Decode.string)
         (Decode.field "heading" Decode.string)
@@ -159,7 +159,7 @@ type Msg
     | AskFirstNoDepsUser
     | GotTarget (Result Http.Error Target)
     | GotLocalStorage String
-    | GotPrimitives (Result Http.Error (Array Primitive))
+    | GotPrimitives (Result Http.Error (List Primitive))
     | SelectPrimitive String
     | Record
     | Previous
@@ -245,7 +245,7 @@ update msg model =
             ( { model | err = (toString err) }, Cmd.none )
 
         GotPrimitives (Ok list) ->
-            ( { model | primitives = list }, Cmd.none )
+            ( { model | primitives = List.indexedMap (\i p -> ( p.target, { p | i = i } )) list |> Dict.fromList }, Cmd.none )
 
         SelectPrimitive str ->
             ( { model
@@ -406,7 +406,7 @@ getPrimitives : Cmd Msg
 getPrimitives =
     Http.send GotPrimitives
         (Http.get "http://localhost:3000/data/pathsNonKanji.json"
-            (Decode.array primitiveDecoder)
+            (Decode.list primitiveDecoder)
         )
 
 
@@ -473,7 +473,7 @@ renderModel model =
         [ text
             (toString
                 { model
-                    | primitives = Array.slice 0 1 model.primitives
+                    | primitives = Dict.toList model.primitives |> List.take 1
                     , token = String.slice 0 5 model.token
                     , kanjiOnly = List.take 10 model.kanjiOnly
                 }
@@ -509,8 +509,16 @@ view model =
         ]
 
 
-renderTargetDeps : Target -> Maybe String -> Html Msg
-renderTargetDeps target maybeuserdeps =
+svgKanji : String -> Html msg
+svgKanji kanji =
+    Svg.svg [ class "dependency", viewBox "0 0 21 21" ]
+        [ Svg.text_ [ SA.x "50%", SA.y "50%", SA.textAnchor "middle", SA.dy "30%" ]
+            [ Svg.text kanji ]
+        ]
+
+
+renderTargetDeps : Target -> Maybe String -> Dict String Primitive -> Html Msg
+renderTargetDeps target maybeuserdeps primitives =
     Html.ul []
         (List.map
             (\dep ->
@@ -524,23 +532,31 @@ renderTargetDeps target maybeuserdeps =
                          else
                             []
                         )
-                        [ text
-                            (dep.depString
-                                ++ " ("
-                                ++ (toString dep.count)
-                                ++ " votes) "
-                            )
-                        , if uservote then
-                            text "(Your selection!)"
-                          else
-                            button [ onClick (Accept dep.depString) ] [ text "Accept" ]
-                        ]
+                    <|
+                        (String.split "," dep.depString
+                            |> List.map
+                                (\s ->
+                                    Dict.get s primitives
+                                        |> Maybe.map (svgPrimitive "dependency")
+                                        |> withDefault (svgKanji s)
+                                )
+                        )
+                            ++ [ text
+                                    (" ("
+                                        ++ (toString dep.count)
+                                        ++ " votes) "
+                                    )
+                               , if uservote then
+                                    text "(Your selection!)"
+                                 else
+                                    button [ onClick (Accept dep.depString) ] [ text "Accept" ]
+                               ]
             )
             target.deps
         )
 
 
-renderTarget : Maybe Target -> Maybe String -> Array Primitive -> Html Msg
+renderTarget : Maybe Target -> Maybe String -> Dict String Primitive -> Html Msg
 renderTarget maybetarget maybeuserdeps primitives =
     case maybetarget of
         Just target ->
@@ -551,11 +567,11 @@ renderTarget maybetarget maybeuserdeps primitives =
                             ++ (toString target.pos)
                             ++ "! "
                         )
-                    , Array.get (target.pos - 1) primitives
+                    , Dict.get target.target primitives
                         |> Maybe.map (svgPrimitive "heading-svg")
                         |> withDefault (text target.target)
                     ]
-                , renderTargetDeps target maybeuserdeps
+                , renderTargetDeps target maybeuserdeps primitives
                 ]
 
         Nothing ->
@@ -580,16 +596,16 @@ renderPrimitive selecteds primitive =
         (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
-renderPrimitives : Set String -> Array Primitive -> Html Msg
+renderPrimitives : Set String -> Dict String Primitive -> Html Msg
 renderPrimitives selected primitives =
     div [ HA.class "primitive-container" ]
-        (List.map (renderPrimitive selected) <| Array.toList primitives)
+        (List.map (renderPrimitive selected) <| List.sortBy .i <| Dict.values primitives)
 
 
 svgPrimitive : String -> Primitive -> Html Msg
 svgPrimitive classname primitive =
     Svg.svg
-        [ viewBox "0 0 109 109", class classname ]
+        [ viewBox "0 0 109 109", class classname, SA.title primitive.target ]
         (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
@@ -599,11 +615,11 @@ renderPrimitiveDispOnly pos primitive =
         [ svgPrimitive "" primitive ]
 
 
-renderPrimitivesDispOnly : Array Primitive -> Html Msg
+renderPrimitivesDispOnly : Dict String Primitive -> Html Msg
 renderPrimitivesDispOnly primitiveList =
     div [ HA.class "primitive-container-disp" ]
         ((Html.h2 [] [ text "Jump to a primitive to tag it!" ])
-            :: (List.indexedMap renderPrimitiveDispOnly <| Array.toList primitiveList)
+            :: (List.indexedMap renderPrimitiveDispOnly <| List.sortBy .i <| Dict.values primitiveList)
         )
 
 
