@@ -50,6 +50,7 @@ type alias Model =
     , selectedKanjis : Set String
     , userDeps : Maybe String
     , kanjiOnly : List String
+    , myKanji : List UserDeps
     }
 
 
@@ -62,6 +63,7 @@ init initialLocation =
         Set.empty
         Set.empty
         Nothing
+        []
         []
     , Cmd.batch
         [ (case Url.parseHash route initialLocation of
@@ -169,6 +171,8 @@ type Msg
     | UrlChange Navigation.Location
     | AskForTarget
     | GotKanjiOnly (Result Http.Error String)
+    | MyKanji
+    | GotMyKanji (Result Http.Error (List UserDeps))
 
 
 port login : String -> Cmd msg
@@ -337,6 +341,32 @@ update msg model =
         GotKanjiOnly (Err err) ->
             ( { model | err = toString err }, Cmd.none )
 
+        MyKanji ->
+            ( model, myKanji model.token )
+
+        GotMyKanji (Ok list) ->
+            ( { model | myKanji = list }, Cmd.none )
+
+        GotMyKanji (Err err) ->
+            ( { model | err = toString err }, Cmd.none )
+
+
+myKanji : String -> Cmd Msg
+myKanji token =
+    Http.send GotMyKanji
+        (Http.request
+            { method = "GET"
+            , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+            , url =
+                "http://localhost:3000/secured/myDeps"
+            , body =
+                Http.emptyBody
+            , expect = Http.expectJson (Decode.list userDepsDecoder)
+            , timeout = Nothing
+            , withCredentials = False
+            }
+        )
+
 
 askForUserDeps : String -> String -> Cmd Msg
 askForUserDeps token target =
@@ -455,7 +485,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ button [ onClick Login ] [ text "Login from Elm" ]
-        , button [] [ text "My kanji" ]
+        , button [ onClick MyKanji ] [ text "My kanji" ]
         , button
             [ onClick Previous
             , HA.disabled

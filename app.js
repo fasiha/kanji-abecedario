@@ -91,6 +91,12 @@ app.get('/secured/userDeps/:target', (req, res) => {
       .catch(makeError(res, 'userDeps'));
 });
 
+app.get('/secured/myDeps', (req, res) => {
+  db.myDeps(req.user.sub)
+      .then(result => res.json(result))
+      .catch(makeError(res, 'myDeps'));
+});
+
 app.get('/getPos/:pos', (req, res) => {
   db.getPos(+req.params.pos)
       .then(result => result.length === 0

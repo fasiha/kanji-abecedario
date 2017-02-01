@@ -38,6 +38,10 @@ tape("testing", test => {
         assert(JSON.stringify(gold.map(o => o.target)) ===
                JSON.stringify(db.kanjiOnly));
       })
+      .then(_ => db.myDeps("test2"))
+      .then(printAndReturn)
+      .then(_ => db.myDeps("qweasdzxc"))
+      .then(printAndReturn)
       .catch(console.log.bind(console));
 
   test.end();

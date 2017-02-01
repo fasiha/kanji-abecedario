@@ -81,6 +81,19 @@ function record(target, user, depsArray) {
   });
 }
 
+// Note, the following makes no guarantees about sort order of each dependency
+// group, unlike other dependency functions here, since this is purely for
+// user-export.
+function myDeps(user) {
+  return myhash(user).then(
+      hash => db.allAsync(`SELECT target,
+                                  group_concat(dependency) AS deps
+                           FROM   deps
+                           WHERE  deps.USER = ?
+                           GROUP  BY target`,
+                          [ hash ]));
+}
+
 function depsFor(target) {
   return db.allAsync(`SELECT sortedDeps,
                              count(sortedDeps) AS cnt
@@ -178,6 +191,7 @@ module.exports = {
   userDeps,
   getPos,
   getTarget,
+  myDeps,
   kanjiOnly : allKanji.split(''),
   cleanup : (cb) => db.close(cb),
 };
