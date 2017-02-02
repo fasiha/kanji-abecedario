@@ -49,7 +49,7 @@ type alias Model =
     , selected : Set String
     , selectedKanjis : Set String
     , userDeps : Maybe String
-    , kanjiOnly : List String
+    , kanjiOnly : Dict String Int
     , myKanji : List UserDeps
     }
 
@@ -63,7 +63,7 @@ init initialLocation =
         Set.empty
         Set.empty
         Nothing
-        []
+        Dict.empty
         []
     , Cmd.batch
         [ (case Url.parseHash route initialLocation of
@@ -366,7 +366,7 @@ update msg model =
                 )
 
         GotKanjiOnly (Ok str) ->
-            ( { model | kanjiOnly = String.toList str |> List.map String.fromChar }, Cmd.none )
+            ( { model | kanjiOnly = str |> String.split "" |> List.indexedMap (flip (,)) |> Dict.fromList }, Cmd.none )
 
         GotKanjiOnly (Err err) ->
             ( { model | err = toString err }, Cmd.none )
@@ -522,7 +522,7 @@ renderModel model =
                 { model
                     | primitives = Dict.toList model.primitives |> List.take 1
                     , token = String.slice 0 5 model.token
-                    , kanjiOnly = List.take 10 model.kanjiOnly
+                    , kanjiOnly = List.take 10 <| Dict.toList model.kanjiOnly
                 }
             )
         ]
@@ -550,6 +550,7 @@ view model =
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
         , button [ onClick AskForTarget, HA.disabled (Set.isEmpty model.selectedKanjis) ] [ text "Jump to a kanji" ]
         , renderTarget model.target model.userDeps model.primitives
+        , renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
         , renderPrimitives model.selected model.primitives
         , renderPrimitivesDispOnly model.primitives
         , renderKanjis model.kanjiOnly
@@ -634,6 +635,11 @@ renderTarget maybetarget maybeuserdeps primitives =
             div [] [ text "(Waiting for network)" ]
 
 
+renderSelected : Set String -> Dict String Primitive -> Html Msg
+renderSelected selecteds primitives =
+    div [] [ text <| toString selecteds ]
+
+
 renderPrimitive : Set String -> Primitive -> Html Msg
 renderPrimitive selecteds primitive =
     Svg.svg
@@ -685,9 +691,14 @@ renderKanji target =
         [ text target ]
 
 
-renderKanjis : List String -> Html Msg
-renderKanjis stringList =
+renderKanjis : Dict String Int -> Html Msg
+renderKanjis kanjis =
     div [ HA.class "kanji-container" ]
         ((Html.h2 [] [ text "Jump to a kanji!" ])
-            :: (List.map renderKanji stringList)
+            :: (kanjis
+                    |> Dict.toList
+                    |> List.sortBy Tuple.second
+                    |> List.map Tuple.first
+                    |> List.map renderKanji
+               )
         )
