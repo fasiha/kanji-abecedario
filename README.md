@@ -1,5 +1,6 @@
 # Todo
 
+- [ ] User’s dependency breakdown should autopopulate, so it can be easily added to.
 - [ ] Complete selected primitives/kanji display
 - [ ] CSS-ify primitives/kanji list and error flash
 - [ ] Easy lookup of primitives by existing decompositions
