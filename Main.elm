@@ -320,7 +320,7 @@ update msg model =
                 | selectedKanjis =
                     text
                         |> String.split ""
-                        |> List.filter ((flip Dict.get) model.kanjiOnly >> (/=) Nothing)
+                        |> List.filter ((flip Dict.member) model.kanjiOnly)
                         |> Set.fromList
               }
             , Cmd.none
