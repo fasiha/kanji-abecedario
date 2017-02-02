@@ -294,7 +294,7 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just target ->
-                    ( { model | selected = Set.empty }
+                    ( { model | selected = Set.empty, selectedKanjis = Set.empty }
                     , record
                         model.token
                         target.target
@@ -316,7 +316,13 @@ update msg model =
             )
 
         Input text ->
-            ( { model | selectedKanjis = text |> String.split "" |> Set.fromList }
+            ( { model
+                | selectedKanjis =
+                    text
+                        |> String.split ""
+                        |> List.filter ((flip Dict.get) model.kanjiOnly >> (/=) Nothing)
+                        |> Set.fromList
+              }
             , Cmd.none
             )
 
