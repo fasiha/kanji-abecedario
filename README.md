@@ -1,13 +1,14 @@
 # Todo
 
-- [ ] Show proper error when submitting bad “free decompositions”
-- [x] Show SVGs in dependencies.
+- [ ] Complete selected primitives/kanji display
 - [ ] CSS-ify primitives/kanji list and error flash
 - [ ] Easy lookup of primitives by existing decompositions
 - [ ] Event sourcing: store events with Dat and rebuild the state at each Node startup.
 
 Done
 
+- [x] Better errors
+- [x] Show SVGs in dependencies.
 - [x] Show list of all my votes
 - [x] Show first kanji without my vote.
 - [x] Show my vote for a kanji
