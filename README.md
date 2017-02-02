@@ -2,7 +2,7 @@
 
 - [ ] Show proper error when submitting bad “free decompositions”
 - [x] Show SVGs in dependencies.
-- [ ] CSS-ify primitives/kanji list
+- [ ] CSS-ify primitives/kanji list and error flash
 - [ ] Easy lookup of primitives by existing decompositions
 - [ ] Event sourcing: store events with Dat and rebuild the state at each Node startup.
 

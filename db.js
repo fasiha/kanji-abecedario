@@ -62,8 +62,7 @@ db.runAsync(`PRAGMA foreign_keys = ON`)
 // SERVICES
 
 function cleanDeps(depsArray) {
-  // Ignore whitespace-only entries, replace ABC123 codes with our stringy
-  // targets, and sort.
+  // Ignore whitespace-only entries and sort.
   return Array.from(new Set(depsArray))
       .filter(s => !s.match(/^\s*$/))
       .map(s => s.trim())

@@ -74,7 +74,7 @@ init initialLocation =
                 getTarget target
 
             _ ->
-                getPos 1
+                askFirstNoDeps
           )
         , getPrimitives
         , getKanjiOnly
@@ -208,8 +208,29 @@ update msg model =
         GotTarget (Err err) ->
             case err of
                 -- Could be because of getPos/-1, getTarget/foo, or invalid record
+                -- Could be unauthorized
+                -- Could mean no targets lacking dependencies (in general or for a user)
                 Http.BadStatus res ->
-                    ( { model | err = (toString err) }, Cmd.none )
+                    case (res |> .status |> .code) of
+                        404 ->
+                            ( { model | err = "Couldn’t find anything at " ++ (res |> .url) ++ "! Forwarding you to automatically…" }
+                            , getPos 1
+                            )
+
+                        401 ->
+                            ( { model | err = "Hey, looks like you need to be logged in to do that." }
+                            , login "doesntmatter"
+                            )
+
+                        400 ->
+                            ( { model | err = "The server was unhappy with the data you just sent. If it made a mistake, please contact us. Sorry for the inconvenience." }
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            ( { model | err = (toString err) }
+                            , Cmd.none
+                            )
 
                 _ ->
                     ( { model | err = (toString err) }, Cmd.none )
@@ -232,9 +253,18 @@ update msg model =
         GotUserDeps (Err err) ->
             case err of
                 Http.BadStatus res ->
-                    ( { model | err = (toString err), userDeps = Nothing }, Cmd.none )
+                    case (res |> .status |> .code) of
+                        401 ->
+                            -- user just browsing, carry on
+                            ( model, Cmd.none )
 
-                -- ( { model | userDeps = Nothing }, Cmd.none )
+                        404 ->
+                            -- no user deps
+                            ( model, Cmd.none )
+
+                        _ ->
+                            ( { model | err = (toString err), userDeps = Nothing }, Cmd.none )
+
                 _ ->
                     ( { model | err = (toString err) }, Cmd.none )
 
@@ -348,7 +378,24 @@ update msg model =
             ( { model | myKanji = list }, Cmd.none )
 
         GotMyKanji (Err err) ->
-            ( { model | err = toString err }, Cmd.none )
+            case err of
+                -- Could be because of getPos/-1, getTarget/foo, or invalid record
+                -- Could be unauthorized
+                -- Could mean no targets lacking dependencies (in general or for a user)
+                Http.BadStatus res ->
+                    case (res |> .status |> .code) of
+                        401 ->
+                            ( { model | err = "Hey, looks like you need to be logged in to do that." }
+                            , login "doesntmatter"
+                            )
+
+                        _ ->
+                            ( { model | err = (toString err) }
+                            , Cmd.none
+                            )
+
+                _ ->
+                    ( { model | err = (toString err) }, Cmd.none )
 
 
 myKanji : String -> Cmd Msg
@@ -484,7 +531,8 @@ renderModel model =
 view : Model -> Html Msg
 view model =
     div []
-        [ button [ onClick Login ] [ text "Login from Elm" ]
+        [ renderErr model.err
+        , button [ onClick Login ] [ text "Login from Elm" ]
         , button [ onClick MyKanji ] [ text "My kanji" ]
         , button
             [ onClick Previous
@@ -500,13 +548,21 @@ view model =
         , button [ onClick AskFirstNoDepsUser ] [ text "First kanji without my vote" ]
         , button [ onClick Record ] [ text "Record" ]
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
-        , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
+        , button [ onClick AskForTarget, HA.disabled (Set.isEmpty model.selectedKanjis) ] [ text "Jump to a kanji" ]
         , renderTarget model.target model.userDeps model.primitives
         , renderPrimitives model.selected model.primitives
         , renderPrimitivesDispOnly model.primitives
         , renderKanjis model.kanjiOnly
         , renderModel model
         ]
+
+
+renderErr : String -> Html Msg
+renderErr err =
+    if String.isEmpty err then
+        div [] []
+    else
+        div [ class "error-notification" ] [ text err ]
 
 
 svgKanji : String -> Html msg

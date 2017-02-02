@@ -51,8 +51,13 @@ app.get('/secured/ping', (req, res) => {
 });
 
 var makeError = (res, errname) => (err => {
-  console.error("ERROR SQLite", errname, err);
-  res.status(500).send(`database error (${errname})`);
+  if (err.errno === 19) {
+    // somebody tried to record a non-target dependency
+    res.status(400).send(err.code);
+  } else {
+    console.error("ERROR SQLite", errname, err);
+    res.status(500).send(`database error (${errname})`);
+  }
 });
 
 app.post('/secured/record/:target', (req, res) => {
