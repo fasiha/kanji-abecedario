@@ -34,7 +34,7 @@ type alias Dependencies =
 
 
 type alias Target =
-    { target : String, pos : Int, deps : List Dependencies }
+    { target : String, pos : Int, deps : List Dependencies, userDeps : Maybe String }
 
 
 type alias Primitive =
@@ -48,7 +48,6 @@ type alias Model =
     , primitives : Dict String Primitive
     , selected : Set String
     , selectedKanjis : Set String
-    , userDeps : Maybe String
     , kanjiOnly : Dict String Int
     , myKanji : List UserDeps
     , depsKanjiString : String
@@ -63,7 +62,6 @@ init initialLocation =
         Dict.empty
         Set.empty
         Set.empty
-        Nothing
         Dict.empty
         []
         ""
@@ -105,7 +103,7 @@ depsDecoder =
 
 targetDecoder : Decode.Decoder Target
 targetDecoder =
-    Decode.map3 Target
+    Decode.map3 (\a b c -> Target a b c Nothing)
         (Decode.field "target" Decode.string)
         (Decode.field "rowid" Decode.int)
         (Decode.field "deps" (Decode.list depsDecoder))
@@ -197,7 +195,7 @@ update msg model =
                 url =
                     routeToFragment (RoutePos target.pos)
             in
-                ( { model | target = Just target, userDeps = Nothing }
+                ( { model | target = Just target }
                 , if List.isEmpty target.deps then
                     Navigation.newUrl url
                   else
@@ -245,10 +243,17 @@ update msg model =
             )
 
         GotUserDeps (Ok deps) ->
-            ( if deps.target == (model.target |> Maybe.map .target |> withDefault "") then
-                { model | userDeps = Just deps.deps }
-              else
-                model
+            ( { model
+                | target =
+                    model.target
+                        |> Maybe.map
+                            (\target ->
+                                if deps.target == target.target then
+                                    { target | userDeps = Just deps.deps }
+                                else
+                                    target
+                            )
+              }
             , Cmd.none
             )
 
@@ -258,17 +263,17 @@ update msg model =
                     case (res |> .status |> .code) of
                         401 ->
                             -- user just browsing, carry on
-                            ( { model | userDeps = Nothing }, Cmd.none )
+                            ( model, Cmd.none )
 
                         404 ->
                             -- no user deps
-                            ( { model | userDeps = Nothing }, Cmd.none )
+                            ( model, Cmd.none )
 
                         _ ->
-                            ( { model | userDeps = Nothing, err = (toString err) }, Cmd.none )
+                            ( { model | err = (toString err) }, Cmd.none )
 
                 _ ->
-                    ( { model | userDeps = Nothing, err = (toString err) }, Cmd.none )
+                    ( { model | err = (toString err) }, Cmd.none )
 
         GotLocalStorage str ->
             ( { model | token = str }, Cmd.none )
@@ -556,11 +561,11 @@ view model =
         , button [ onClick Record ] [ text "Record" ]
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input, HA.value model.depsKanjiString ] []
         , button [ onClick AskForTarget, HA.disabled (Set.isEmpty model.selectedKanjis) ] [ text "Jump to a kanji" ]
-        , renderTarget model.target model.userDeps model.primitives
+        , renderTarget model.target model.primitives
         , renderPrimitives model.selected model.primitives
         , renderKanjiAsker model.depsKanjiString
         , renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
-        , renderTargetDeps model.target model.userDeps model.primitives
+        , renderTargetDeps model.target model.primitives
         , renderPrimitivesDispOnly model.primitives
         , renderKanjis model.kanjiOnly
         , renderModel model
@@ -596,21 +601,25 @@ renderCheck =
     Html.span [ class "user-vote-check", HA.title "You have voted!" ] [ text " ✅" ]
 
 
-renderTarget : Maybe Target -> Maybe String -> Dict String Primitive -> Html Msg
-renderTarget maybetarget maybeuserdeps primitives =
+renderTarget : Maybe Target -> Dict String Primitive -> Html Msg
+renderTarget maybetarget primitives =
     case maybetarget of
         Just target ->
             div []
                 [ Html.h1 []
                     [ text
-                        ("Help us decompose #"
+                        ((if target.userDeps == Nothing then
+                            "Help us decompose #"
+                          else
+                            "Thanks for decomposing #"
+                         )
                             ++ (toString target.pos)
                             ++ "! "
                         )
                     , Dict.get target.target primitives
                         |> Maybe.map (svgPrimitive "heading-svg")
                         |> withDefault (text target.target)
-                    , maybeuserdeps
+                    , target.userDeps
                         |> Maybe.map (always renderCheck)
                         |> withDefault (text "")
                     ]
@@ -675,53 +684,57 @@ svgPrimitive classname primitive =
         (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
-renderTargetDeps : Maybe Target -> Maybe String -> Dict String Primitive -> Html Msg
-renderTargetDeps target maybeuserdeps primitives =
-    target
-        |> Maybe.map
-            (.deps
-                >> List.map
-                    (\dep ->
-                        let
-                            uservote =
-                                maybeuserdeps |> Maybe.map ((==) dep.depString) |> withDefault False
-                        in
-                            Html.li
-                                (if uservote then
-                                    [ class "uservote" ]
-                                 else
-                                    []
-                                )
-                            <|
-                                (String.split "," dep.depString
-                                    |> List.map
-                                        (\s ->
-                                            Dict.get s primitives
-                                                |> Maybe.map (svgPrimitive "dependency")
-                                                |> withDefault (svgKanji s)
-                                        )
-                                )
-                                    ++ [ text
-                                            (" ("
-                                                ++ (toString dep.count)
-                                                ++ (if dep.count > 1 then
-                                                        " votes) "
-                                                    else
-                                                        " vote) "
-                                                   )
-                                            )
-                                       , if uservote then
-                                            renderCheck
-                                         else
-                                            button [ onClick (Accept dep.depString) ] [ text "Accept" ]
-                                       ]
-                    )
-                >> Html.ul []
-                >> List.singleton
-                >> (::) (Html.h3 [] [ text "Or choose from one of these decompositions:" ])
-                >> Html.div []
+renderOneDeps : Dict String Primitive -> Maybe String -> Dependencies -> Html Msg
+renderOneDeps primitives userDeps dep =
+    let
+        uservote =
+            userDeps |> Maybe.map ((==) dep.depString) |> withDefault False
+    in
+        Html.li
+            (if uservote then
+                [ class "uservote" ]
+             else
+                []
             )
-        |> withDefault (text "")
+            [ span []
+                (List.map
+                    (\s ->
+                        Dict.get s primitives
+                            |> Maybe.map (svgPrimitive "dependency")
+                            |> withDefault (svgKanji s)
+                    )
+                    (String.split "," dep.depString)
+                )
+            , text
+                (" ("
+                    ++ (toString dep.count)
+                    ++ (if dep.count > 1 then
+                            " votes) "
+                        else
+                            " vote) "
+                       )
+                )
+            , if uservote then
+                renderCheck
+              else
+                button [ onClick (Accept dep.depString) ] [ text "Accept" ]
+            ]
+
+
+renderTargetDeps : Maybe Target -> Dict String Primitive -> Html Msg
+renderTargetDeps target primitives =
+    case target of
+        Nothing ->
+            text ""
+
+        Just target ->
+            div [] <|
+                if List.isEmpty target.deps then
+                    []
+                else
+                    [ Html.h3 [] [ text "Or choose from one of these decompositions:" ]
+                    , Html.ul [] <| List.map (renderOneDeps primitives target.userDeps) target.deps
+                    ]
 
 
 renderPrimitiveDispOnly : Int -> Primitive -> Html Msg
