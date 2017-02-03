@@ -1,7 +1,7 @@
 # Todo
 
-- [ ] User’s dependency breakdown should autopopulate, so it can be easily added to.
-- [ ] Complete selected primitives/kanji display
+- [x] User’s dependency breakdown should autopopulate, so it can be easily added to.
+- [x] Complete selected primitives/kanji display
 - [ ] CSS-ify primitives/kanji list and error flash
 - [ ] Easy lookup of primitives by existing decompositions
 - [ ] Event sourcing: store events with Dat and rebuild the state at each Node startup.

@@ -243,17 +243,22 @@ update msg model =
             )
 
         GotUserDeps (Ok deps) ->
-            ( { model
-                | target =
-                    model.target
-                        |> Maybe.map
-                            (\target ->
-                                if deps.target == target.target then
-                                    { target | userDeps = Just deps.deps }
-                                else
-                                    target
-                            )
-              }
+            ( if deps.target == (model.target |> Maybe.map .target |> withDefault "") then
+                let
+                    ( kanjis, primitives ) =
+                        List.partition (flip Dict.member model.kanjiOnly) (String.split "," deps.deps)
+                in
+                    { model
+                        | target =
+                            model.target
+                                |> Maybe.map
+                                    (\target -> { target | userDeps = Just deps.deps })
+                        , selectedKanjis = Set.fromList kanjis
+                        , selected = Set.fromList primitives
+                        , depsKanjiString = String.join "" kanjis
+                    }
+              else
+                model
             , Cmd.none
             )
 
@@ -584,7 +589,7 @@ renderKanjiAsker : String -> Html Msg
 renderKanjiAsker depsKanjiString =
     div []
         [ Html.h3 [] [ text "Or enter non-primitive kanji components here:" ]
-        , Html.input [ HA.placeholder "Enter kanji here", onInput Input, HA.value depsKanjiString ] []
+        , Html.input [ HA.value depsKanjiString, HA.placeholder "Enter kanji here", onInput Input ] []
         ]
 
 
