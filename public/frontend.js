@@ -9,9 +9,9 @@ lock.on("authenticated", function(authResult) {
       console.log("ERROR", error);
       return;
     }
-    localStorage.setItem('idToken', authResult.idToken); // JWT
-    localStorage.setItem("accessToken", authResult.accessToken);
-    localStorage.setItem("profile", JSON.stringify(profile));
+    // localStorage.setItem('idToken', authResult.idToken); // JWT
+    // localStorage.setItem("accessToken", authResult.accessToken);
+    // localStorage.setItem("profile", JSON.stringify(profile));
 
     // Send to Elm
     if (app && app.ports) {
@@ -21,11 +21,11 @@ lock.on("authenticated", function(authResult) {
   });
 });
 
-if (localStorage.getItem('idToken')) {
-  if (app && app.ports) {
-    app.ports.gotLocalStorage.send(localStorage.getItem('idToken'));
-  }
-}
+// if (localStorage.getItem('idToken')) {
+//   if (app && app.ports) {
+//     app.ports.gotLocalStorage.send(localStorage.getItem('idToken'));
+//   }
+// }
 
 var btn_login = document.getElementById('btn-login');
 btn_login.addEventListener('click', function() { lock.show(); });
