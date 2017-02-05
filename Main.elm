@@ -219,7 +219,7 @@ update msg model =
             ( model, logoutCmd )
 
         LoggedOut _ ->
-            ( { model | loggedIn = False }
+            ( { model | loggedIn = False, selected = Set.empty, selectedKanjis = Set.empty }
             , Cmd.batch
                 [ getPing
                 , (model.target
@@ -290,8 +290,8 @@ update msg model =
         GotUserDeps (Ok deps) ->
             ( if deps.target == (model.target |> Maybe.map .target |> withDefault "") then
                 let
-                    ( kanjis, primitives ) =
-                        List.partition (flip Dict.member model.kanjiOnly) (String.split "," deps.deps)
+                    ( primitives, kanjis ) =
+                        List.partition (flip Dict.member model.primitives) (String.split "," deps.deps)
                 in
                     { model
                         | target = model.target |> Maybe.map (\target -> { target | userDeps = Just deps.deps })
