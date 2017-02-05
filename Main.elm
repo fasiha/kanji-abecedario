@@ -294,7 +294,9 @@ update msg model =
                         List.partition (flip Dict.member model.primitives) (String.split "," deps.deps)
                 in
                     { model
-                        | target = model.target |> Maybe.map (\target -> { target | userDeps = Just deps.deps })
+                        | target =
+                            model.target
+                                |> Maybe.map (\target -> { target | userDeps = Just deps.deps })
                         , selectedKanjis = Set.fromList kanjis
                         , selected = Set.fromList primitives
                         , depsKanjiString = String.join "" kanjis
@@ -305,28 +307,38 @@ update msg model =
             )
 
         GotUserDeps (Err err) ->
-            case err of
-                Http.BadStatus res ->
-                    case (res |> .status |> .code) of
-                        401 ->
-                            -- user just browsing, carry on
-                            ( model, Cmd.none )
+            let
+                newmodel =
+                    { model | selectedKanjis = Set.empty, selected = Set.empty }
+            in
+                case err of
+                    Http.BadStatus res ->
+                        case (res |> .status |> .code) of
+                            401 ->
+                                -- user just browsing, carry on
+                                ( newmodel, Cmd.none )
 
-                        404 ->
-                            -- no user deps
-                            ( model, Cmd.none )
+                            404 ->
+                                -- no user deps
+                                ( newmodel, Cmd.none )
 
-                        _ ->
-                            ( { model | err = (toString err) }, delayClearErr )
+                            _ ->
+                                ( { newmodel | err = (toString err) }, delayClearErr )
 
-                _ ->
-                    ( { model | err = (toString err) }, delayClearErr )
+                    _ ->
+                        ( { newmodel | err = (toString err) }, delayClearErr )
 
         GotPrimitives (Err err) ->
             ( { model | err = (toString err) }, delayClearErr )
 
         GotPrimitives (Ok list) ->
-            ( { model | primitives = List.indexedMap (\i p -> ( p.target, { p | i = i } )) list |> Dict.fromList }, Cmd.none )
+            ( { model
+                | primitives =
+                    Dict.fromList <|
+                        List.indexedMap (\i p -> ( p.target, { p | i = i } )) list
+              }
+            , Cmd.none
+            )
 
         SelectPrimitive str ->
             ( { model
