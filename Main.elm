@@ -1,5 +1,8 @@
 port module Main exposing (..)
 
+import Time
+import Task
+import Process
 import Html exposing (Html, button, div, text, a, span)
 import Html.Attributes as HA
 import Set exposing (Set)
@@ -173,14 +176,26 @@ type Msg
     | GotKanjiOnly (Result Http.Error String)
     | MyKanji
     | GotMyKanji (Result Http.Error (List UserDeps))
+    | ClearErr
 
 
 port login : String -> Cmd msg
 
 
+delayClearErr : Cmd Msg
+delayClearErr =
+    Task.perform identity
+        (Process.sleep (2 * Time.second)
+            |> Task.andThen (\() -> Task.succeed ClearErr)
+        )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ClearErr ->
+            ( { model | err = "" }, Cmd.none )
+
         Login ->
             ( model, login "doesntmatter" )
 
@@ -213,18 +228,18 @@ update msg model =
                 Http.BadStatus res ->
                     case (res |> .status |> .code) of
                         404 ->
-                            ( { model | err = "Couldn’t find anything at " ++ (res |> .url) ++ "! Forwarding you to automatically…" }
-                            , getPos 1
+                            ( { model | err = "Couldn’t find anything at " ++ (res |> .url) ++ "! We forwarded you automatically." }
+                            , Cmd.batch [ getPos 1, delayClearErr ]
                             )
 
                         401 ->
                             ( { model | err = "Hey, looks like you need to be logged in to do that." }
-                            , login "doesntmatter"
+                            , Cmd.batch [ delayClearErr, login "doesntmatter" ]
                             )
 
                         400 ->
                             ( { model | err = "The server was unhappy with the data you just sent. If it made a mistake, please contact us. Sorry for the inconvenience." }
-                            , Cmd.none
+                            , delayClearErr
                             )
 
                         _ ->
@@ -233,7 +248,7 @@ update msg model =
                             )
 
                 _ ->
-                    ( { model | err = (toString err) }, Cmd.none )
+                    ( { model | err = (toString err) }, delayClearErr )
 
         AskForUserDeps ->
             ( model
@@ -249,10 +264,7 @@ update msg model =
                         List.partition (flip Dict.member model.kanjiOnly) (String.split "," deps.deps)
                 in
                     { model
-                        | target =
-                            model.target
-                                |> Maybe.map
-                                    (\target -> { target | userDeps = Just deps.deps })
+                        | target = model.target |> Maybe.map (\target -> { target | userDeps = Just deps.deps })
                         , selectedKanjis = Set.fromList kanjis
                         , selected = Set.fromList primitives
                         , depsKanjiString = String.join "" kanjis
@@ -275,16 +287,16 @@ update msg model =
                             ( model, Cmd.none )
 
                         _ ->
-                            ( { model | err = (toString err) }, Cmd.none )
+                            ( { model | err = (toString err) }, delayClearErr )
 
                 _ ->
-                    ( { model | err = (toString err) }, Cmd.none )
+                    ( { model | err = (toString err) }, delayClearErr )
 
         GotLocalStorage str ->
             ( { model | token = str }, Cmd.none )
 
         GotPrimitives (Err err) ->
-            ( { model | err = (toString err) }, Cmd.none )
+            ( { model | err = (toString err) }, delayClearErr )
 
         GotPrimitives (Ok list) ->
             ( { model | primitives = List.indexedMap (\i p -> ( p.target, { p | i = i } )) list |> Dict.fromList }, Cmd.none )
@@ -388,7 +400,7 @@ update msg model =
             ( { model | kanjiOnly = str |> String.split "" |> List.indexedMap (flip (,)) |> Dict.fromList }, Cmd.none )
 
         GotKanjiOnly (Err err) ->
-            ( { model | err = toString err }, Cmd.none )
+            ( { model | err = toString err }, delayClearErr )
 
         MyKanji ->
             ( model, myKanji model.token )
@@ -405,16 +417,16 @@ update msg model =
                     case (res |> .status |> .code) of
                         401 ->
                             ( { model | err = "Hey, looks like you need to be logged in to do that." }
-                            , login "doesntmatter"
+                            , Cmd.batch [ delayClearErr, login "doesntmatter" ]
                             )
 
                         _ ->
                             ( { model | err = (toString err) }
-                            , Cmd.none
+                            , delayClearErr
                             )
 
                 _ ->
-                    ( { model | err = (toString err) }, Cmd.none )
+                    ( { model | err = (toString err) }, delayClearErr )
 
 
 myKanji : String -> Cmd Msg
@@ -537,7 +549,7 @@ renderModel model =
         [ text
             (toString
                 { model
-                    | primitives = Dict.toList model.primitives |> List.take 1
+                    | primitives = Dict.empty
                     , token = String.slice 0 5 model.token
                     , kanjiOnly = List.take 10 <| Dict.toList model.kanjiOnly
                 }
@@ -563,15 +575,13 @@ view model =
         , button [ onClick Next ] [ text "Next kanji" ]
         , button [ onClick AskFirstNoDeps ] [ text "First kanji without any votes" ]
         , button [ onClick AskFirstNoDepsUser ] [ text "First kanji without my vote" ]
-        , button [ onClick Record ] [ text "Record" ]
-        , Html.input [ HA.placeholder "Enter kanji here", onInput Input, HA.value model.depsKanjiString ] []
-        , button [ onClick AskForTarget, HA.disabled (Set.isEmpty model.selectedKanjis) ] [ text "Jump to a kanji" ]
         , renderTarget model.target model.primitives
         , renderPrimitives model.selected model.primitives
         , renderKanjiAsker model.depsKanjiString
         , renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
         , renderTargetDeps model.target model.primitives
         , renderPrimitivesDispOnly model.primitives
+        , renderKanjiJump
         , renderKanjis model.kanjiOnly
         , renderModel model
         ]
@@ -583,6 +593,15 @@ renderErr err =
         div [] []
     else
         div [ class "error-notification" ] [ text err ]
+
+
+renderKanjiJump : Html Msg
+renderKanjiJump =
+    div []
+        [ Html.h2 [] [ text "Enter a kanji to jump to!" ]
+        , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
+        , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
+        ]
 
 
 renderKanjiAsker : String -> Html Msg
