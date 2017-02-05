@@ -484,7 +484,7 @@ record token target deps =
 getPrimitives : Cmd Msg
 getPrimitives =
     Http.send GotPrimitives
-        (Http.get "http://localhost:3000/data/pathsNonKanji.json"
+        (Http.get "http://localhost:3000/data/paths.json"
             (Decode.list primitiveDecoder)
         )
 
@@ -566,10 +566,10 @@ view model =
         , button [ onClick AskFirstNoDeps ] [ text "First kanji without any votes" ]
         , button [ onClick AskFirstNoDepsUser ] [ text "First kanji without my vote" ]
         , renderTarget model.target model.primitives
-        , renderPrimitives model.selected model.primitives
-        , renderKanjiAsker model.depsKanjiString
-        , renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
         , renderTargetDeps model.target model.primitives
+        , renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
+        , renderKanjiAsker model.depsKanjiString
+        , renderPrimitives model.selected model.primitives
         , lazy renderPrimitivesDispOnly model.primitives
         , renderKanjiJump
         , lazy renderKanjis model.kanjiOnly
@@ -597,7 +597,7 @@ renderKanjiJump =
 renderKanjiAsker : String -> Html Msg
 renderKanjiAsker depsKanjiString =
     div []
-        [ Html.h3 [] [ text "Or type components here:" ]
+        [ Html.h3 [] [ text "Enter your own decomposition’s components!" ]
         , Html.input [ HA.value depsKanjiString, HA.placeholder "Enter kanji here", onInput Input ] []
         ]
 
@@ -667,7 +667,7 @@ renderSelected selecteds primitives =
 renderPrimitives : Set String -> Dict String Primitive -> Html Msg
 renderPrimitives selected primitives =
     div []
-        [ Html.h3 [] [ text "Choose some combination of the following components:" ]
+        [ Html.h3 [] [ text "Select any of the following components!" ]
         , div [ HA.class "primitive-container" ]
             (List.map (renderPrimitive selected) <| List.sortBy .i <| Dict.values primitives)
         ]
@@ -746,7 +746,7 @@ renderTargetDeps target primitives =
                 if List.isEmpty target.deps then
                     []
                 else
-                    [ Html.h3 [] [ text "Or choose from one of these decompositions:" ]
+                    [ Html.h3 [] [ text "Are any of these existing decompositions to your liking?" ]
                     , Html.ul [] <| List.map (renderOneDeps primitives target.userDeps) target.deps
                     ]
 

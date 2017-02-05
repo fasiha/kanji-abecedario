@@ -28,16 +28,16 @@ tape("testing", test => {
       .then(_ => db.record("氵", 'test2', [ '道', '雨' ]))
       .then(_ => db.firstNoDeps())
       .then(printAndReturn)
-      .then(_=>db.record("丬", "test4", "目耳口花".split('')))
+      .then(_ => db.record("丬", "test4", "目耳口花".split('')))
       .then(_ => db.getPos(1))
       .then(printAndReturn)
       .then(_ => db.getPos(100))
       .then(printAndReturn)
       .then(_ => db.db.allAsync(
-                `SELECT target, rowid FROM targets WHERE primitive = 0`))
+                `SELECT target, rowid FROM targets WHERE kanji = 1`))
       .then(gold => {
-        assert(JSON.stringify(gold.map(o => o.target)) ===
-               JSON.stringify(db.kanjiOnly));
+        assert(JSON.stringify(gold.map(o => o.target).sort()) ===
+               JSON.stringify(db.kanjiOnly.sort()));
       })
       .then(_ => db.myDeps("test2"))
       .then(printAndReturn)

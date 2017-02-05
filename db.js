@@ -29,10 +29,21 @@ var allKanji = Object.keys(kanken)
                    .reduce((prev, curr) => prev + curr);
 // allKanji contains a giant string containing jouyou and jinmeiyou kanji.
 // It might contain some primitives, which we load next:
-var paths = JSON.parse(fs.readFileSync('data/pathsNonKanji.json', 'utf8'));
-// Strip real kanji from primitives list.
-var kanjiSet = new Set(allKanji.split(''));
-paths = paths.filter(o => !kanjiSet.has(o.target));
+var paths = JSON.parse(fs.readFileSync('data/paths.json', 'utf8'));
+
+function makeTargets(paths, allKanji) {
+  var kanjiSet = new Set(allKanji.split(''));
+  var primSet = new Set(paths.map(o => o.target));
+  var seen = new Set([]);
+  var all = [];
+  for (var target of paths.map(o => o.target).concat(allKanji.split(''))) {
+    if (!seen.has(target)) {
+      seen.add(target);
+      all.push([ target, primSet.has(target) * 1, kanjiSet.has(target) * 1 ]);
+    }
+  }
+  return all;
+}
 
 // DB
 
@@ -40,9 +51,12 @@ var db = new sqlite3.Database('deps.db');
 // var db = new sqlite3.Database(':memory:');
 
 db.runAsync(`PRAGMA foreign_keys = ON`)
-    .then(
-        _ => db.runAsync(
-            `CREATE TABLE IF NOT EXISTS targets (target TEXT PRIMARY KEY NOT NULL, primitive BOOLEAN)`))
+    .then(_ => db.runAsync(`CREATE TABLE IF NOT EXISTS targets
+                (
+                   target    TEXT PRIMARY KEY NOT NULL,
+                   primitive BOOLEAN NOT NULL,
+                   kanji     BOOLEAN NOT NULL
+                )`))
     .then(_ => db.runAsync(`CREATE TABLE IF NOT EXISTS deps (
             target TEXT NOT NULL,
             user TEXT NOT NULL,
@@ -52,10 +66,8 @@ db.runAsync(`PRAGMA foreign_keys = ON`)
     .then(_ => db.runAsync(
               `CREATE INDEX IF NOT EXISTS targetUser ON deps (target, user)`))
     .then(_ => {
-      var s = paths.map(o => [o.target, 1])
-                  .concat(allKanji.split('').map(s => [s, 0]))
-                  .map(([ s, i ]) => `("${s}", ${i})`)
-                  .join(',');
+      var allTargets = makeTargets(paths, allKanji);
+      var s = allTargets.map(([ s, i, j ]) => `("${s}",${i},${j})`).join(',');
       return db.runAsync(`INSERT OR IGNORE INTO targets VALUES ${s}`)
     });
 
@@ -84,13 +96,12 @@ function record(target, user, depsArray) {
 // group, unlike other dependency functions here, since this is purely for
 // user-export.
 function myDeps(user) {
-  return myhash(user).then(
-      hash => db.allAsync(`SELECT target,
+  return myhash(user).then(hash => db.allAsync(`SELECT target,
                                   group_concat(dependency) AS deps
                            FROM   deps
                            WHERE  deps.USER = ?
                            GROUP  BY target`,
-                          [ hash ]));
+                                               [ hash ]));
 }
 
 function depsFor(target) {
