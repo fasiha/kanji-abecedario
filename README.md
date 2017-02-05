@@ -1,15 +1,14 @@
 # Todo
 
-- [ ] Full-screen Elm?
-- [ ] Add numbers to hover over primitives
-- [x] JWT->session?
-- [ ] Download CSV of my kanji
+- [ ] About + Export (static HTML, outside Elm)
 - [ ] CSS-ify primitives/kanji list and error flash
 - [ ] Easy lookup of primitives by existing decompositions
 - [ ] Event sourcing: store events with Dat and rebuild the state at each Node startup.
 
 Done
 
+- [x] Add numbers to hover over primitives
+- [x] JWT->session?
 - [x] User’s dependency breakdown should autopopulate, so it can be easily added to.
 - [x] Complete selected primitives/kanji display
 - [x] Better errors
@@ -21,6 +20,7 @@ Done
 - [x] Add router, i.e., `#/13`.
 - [x] Omit real kanji from primitives list.
 - [x] Show SVG(s) in top-level description instead of internal target name.
+- [x] Full-screen Elm?
 
 Consider?
 

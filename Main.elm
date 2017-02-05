@@ -739,32 +739,34 @@ renderPrimitives selected primitives =
     div []
         [ Html.h3 [] [ text "Select any of the following components!" ]
         , div [ HA.class "primitive-container" ]
-            (List.map (renderPrimitive selected) <| List.sortBy .i <| Dict.values primitives)
+            (List.indexedMap (renderPrimitive selected) <| List.sortBy .i <| Dict.values primitives)
         ]
 
 
-renderPrimitive : Set String -> Primitive -> Html Msg
-renderPrimitive selecteds primitive =
-    Svg.svg
-        [ viewBox "0 0 109 109"
-        , class
-            (String.join " "
-                [ ("col-" ++ primitive.heading)
-                , if Set.member primitive.target selecteds then
-                    "primitive-selected"
-                  else
-                    ""
-                ]
-            )
-        , onClick (SelectPrimitive primitive.target)
+renderPrimitive : Set String -> Int -> Primitive -> Html Msg
+renderPrimitive selecteds pos primitive =
+    Html.span [ HA.title ("#" ++ toString (1 + pos)) ]
+        [ Svg.svg
+            [ viewBox "0 0 109 109"
+            , class
+                (String.join " "
+                    [ ("col-" ++ primitive.heading)
+                    , if Set.member primitive.target selecteds then
+                        "primitive-selected"
+                      else
+                        ""
+                    ]
+                )
+            , onClick (SelectPrimitive primitive.target)
+            ]
+            (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
         ]
-        (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
 svgPrimitive : String -> Primitive -> Html Msg
 svgPrimitive classname primitive =
     Svg.svg
-        [ viewBox "0 0 109 109", class classname, SA.title primitive.target ]
+        [ viewBox "0 0 109 109", class classname ]
         (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
@@ -823,7 +825,7 @@ renderTargetDeps target primitives =
 
 renderPrimitiveDispOnly : Int -> Primitive -> Html Msg
 renderPrimitiveDispOnly pos primitive =
-    a [ HA.href <| routeToFragment <| RoutePos <| 1 + pos ]
+    a [ HA.href <| routeToFragment <| RoutePos <| 1 + pos, HA.title ("#" ++ toString (1 + pos)) ]
         [ svgPrimitive "" primitive ]
 
 
