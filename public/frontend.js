@@ -18,7 +18,7 @@ lock.on("authenticated", function(authResult) {
     header.append('Authorization', 'Bearer ' + authResult.idToken);
     fetch('http://localhost:3000/login',
           {method : 'GET', headers : header, credentials : 'same-origin'})
-        .then(res => {
+        .then(function(res) {
           if (res.status !== 200) {
             console.error(`Response status: ${res.status}`);
           }

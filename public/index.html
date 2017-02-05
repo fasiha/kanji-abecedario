@@ -170,11 +170,14 @@ svg.primitive-selected {
 </head>
 
 <div id="main"></div>
+<script src="fetch.js"></script>
 <script src="./frontend.js" async></script>
 <script src="main.min.js"></script>
 <script>
-  let node = document.getElementById('main');
-  let app = Elm.Main.embed(node);
+  // let node = document.getElementById('main');
+  // let app = Elm.Main.embed(node);
+  let app = Elm.Main.fullscreen();
+
 
   app.ports.login.subscribe(function(word) {
     lock.show();
