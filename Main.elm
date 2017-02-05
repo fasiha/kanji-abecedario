@@ -1,5 +1,6 @@
 port module Main exposing (..)
 
+import Html.Lazy exposing (lazy)
 import Time
 import Task
 import Process
@@ -60,7 +61,7 @@ type alias Model =
 init : Navigation.Location -> ( Model, Cmd Msg )
 init initialLocation =
     ( Model ""
-        "invalid token"
+        ""
         Nothing
         Dict.empty
         Set.empty
@@ -193,9 +194,6 @@ delayClearErr =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ClearErr ->
-            ( { model | err = "" }, Cmd.none )
-
         Login ->
             ( model, login "doesntmatter" )
 
@@ -428,6 +426,9 @@ update msg model =
                 _ ->
                     ( { model | err = (toString err) }, delayClearErr )
 
+        ClearErr ->
+            ( { model | err = "" }, Cmd.none )
+
 
 myKanji : String -> Cmd Msg
 myKanji token =
@@ -543,25 +544,14 @@ subscriptions model =
 -- VIEW
 
 
-renderModel : Model -> Html Msg
-renderModel model =
-    div []
-        [ text
-            (toString
-                { model
-                    | primitives = Dict.empty
-                    , token = String.slice 0 5 model.token
-                    , kanjiOnly = List.take 10 <| Dict.toList model.kanjiOnly
-                }
-            )
-        ]
-
-
 view : Model -> Html Msg
 view model =
     div []
         [ renderErr model.err
-        , button [ onClick Login ] [ text "Login from Elm" ]
+        , if model.token == "" then
+            button [ onClick Login ] [ text "Login" ]
+          else
+            text ""
         , button [ onClick MyKanji ] [ text "My kanji" ]
         , button
             [ onClick Previous
@@ -580,10 +570,10 @@ view model =
         , renderKanjiAsker model.depsKanjiString
         , renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
         , renderTargetDeps model.target model.primitives
-        , renderPrimitivesDispOnly model.primitives
+        , lazy renderPrimitivesDispOnly model.primitives
         , renderKanjiJump
-        , renderKanjis model.kanjiOnly
-        , renderModel model
+        , lazy renderKanjis model.kanjiOnly
+          -- , renderModel model
         ]
 
 
@@ -598,7 +588,7 @@ renderErr err =
 renderKanjiJump : Html Msg
 renderKanjiJump =
     div []
-        [ Html.h2 [] [ text "Enter a kanji to jump to!" ]
+        [ Html.h2 [] [ text "Enter a kanji to tag!" ]
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
         , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
         ]
@@ -769,10 +759,11 @@ renderPrimitiveDispOnly pos primitive =
 
 renderPrimitivesDispOnly : Dict String Primitive -> Html Msg
 renderPrimitivesDispOnly primitiveList =
-    div [ HA.class "primitive-container-disp" ]
-        ((Html.h2 [] [ text "Jump to a primitive to tag it!" ])
-            :: (List.indexedMap renderPrimitiveDispOnly <| List.sortBy .i <| Dict.values primitiveList)
-        )
+    div []
+        [ Html.h2 [] [ text "Jump to a primitive to tag it!" ]
+        , div [ HA.class "primitive-container-disp" ]
+            (List.indexedMap renderPrimitiveDispOnly <| List.sortBy .i <| Dict.values primitiveList)
+        ]
 
 
 renderKanji : String -> Html Msg
@@ -783,12 +774,27 @@ renderKanji target =
 
 renderKanjis : Dict String Int -> Html Msg
 renderKanjis kanjis =
-    div [ HA.class "kanji-container" ]
-        ((Html.h2 [] [ text "Jump to a kanji!" ])
-            :: (kanjis
-                    |> Dict.toList
-                    |> List.sortBy Tuple.second
-                    |> List.map Tuple.first
-                    |> List.map renderKanji
-               )
-        )
+    div []
+        [ Html.h2 [] [ text "Click on a kanji to tag!" ]
+        , div [ HA.class "kanji-container" ]
+            (kanjis
+                |> Dict.toList
+                |> List.sortBy Tuple.second
+                |> List.map Tuple.first
+                |> List.map renderKanji
+            )
+        ]
+
+
+renderModel : Model -> Html Msg
+renderModel model =
+    div []
+        [ text
+            (toString
+                { model
+                    | primitives = Dict.empty
+                    , token = String.slice 0 5 model.token
+                    , kanjiOnly = List.take 10 <| Dict.toList model.kanjiOnly
+                }
+            )
+        ]
