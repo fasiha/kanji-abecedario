@@ -12,20 +12,8 @@ lock.on("authenticated", function(authResult) {
     // localStorage.setItem('idToken', authResult.idToken); // JWT
     // localStorage.setItem("accessToken", authResult.accessToken);
     // localStorage.setItem("profile", JSON.stringify(profile));
-
-    // Establish a session on the server
-    let header = new Headers();
-    header.append('Authorization', 'Bearer ' + authResult.idToken);
-    fetch('http://localhost:3000/login',
-          {method : 'GET', headers : header, credentials : 'same-origin'})
-        .then(function(res) {
-          if (res.status !== 200) {
-            console.error(`Response status: ${res.status}`);
-          }
-          if (app && app.ports && app.ports.gotAuthenticated) {
-            app.ports.gotAuthenticated.send('!');
-          }
-        });
-
+    if (app && app.ports && app.ports.gotAuthenticated) {
+      app.ports.gotAuthenticated.send(authResult.idToken);
+    }
   });
 });

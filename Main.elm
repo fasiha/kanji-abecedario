@@ -158,13 +158,15 @@ routeToFragment route =
 -- UPDATE
 {- SO.
 
-   Login happens with JWT. When a button click or whatever invokes the `Login` Msg, Elm asks JavaScript to ask Auth0 to do its thing. Then the user provides their GitHub credentials to GitHub, or whatever, and Auth0 reloads this page. In JavaScript-land (cf., `frontend.js`), JavaScript will make a GET request to `/login` with the JWT token Auth0 got for us. This establishes a session on the backend, and once this is done, JavaScript tells Elm, via a subscription called `gotAuthenticated`, which in turn sends the `Authenticated` Msg.
+   Login happens with JWT. When a button click or whatever invokes the `Login` Msg, Elm asks JavaScript to ask Auth0 to do its thing. Then the user provides their GitHub credentials to GitHub, or whatever, and Auth0 reloads this page. During the page refresh, in `frontend.js`, Auth0 will take the JWT token, send it to Elm via a subscription called `gotAuthenticated`. Elm will make a GET request to `/login` with the JWT token, which establishes a session on the backend.
 
     According to http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/ we shoulnd't use JWT as sessions, so that's why we do this: the client gives the JWT authentication token to the backend and is 'logged in'.
 
-    Once we're `Authenticated`, and at Elm initialization, we send the `getPing` Cmd, which checks whether we're logged into the backend---specifically, if the backend has a session for us. Elm doesn't really care about the response: it's only here so Elm can show a "Login" or a "Logout" button. If you try to make a personalized request, Elm will send your request to the backend, which might reject it as unauthorized 401. In that case, Elm will re-send the `Login` Msg and Auth0 will come up, asking you to log in again.
+    Elm can check whether we're really logged in by sending the `getPing` Cmd, which makes a secured request to the backend. Elm doesn't really care about whether we're really logged in or not: we only `getPing` to know whether we should show a "Login" or a "Logout" button. We don't care because if you try to make a personalized request, Elm will send your request to the backend, which might reject it as unauthorized 401. In that case, Elm will re-send the `Login` Msg and Auth0 will come up, asking you to log in again.
 
-    So. We authenticate with Auth0 but all the authorization happens with backend sessions. "Logout" means kill the session on the backend. The only thing to do in the frontend is reset `model.loggedIn` boolean and re-request the target---that's how we'll flush that target's `userDeps`.
+    At no point is there any brittle logic here, in the frontend, trying to guess what the backend thinks of our login status. The frontend just does what it wants to do, and if it's request is rejected, it asks for a fresh login.
+
+    So there's a bit of a difference between Auth0-to-session authentication. "Logout" here means kill the session on the backend---it's got nothing to do with Auth0. After sending the request to `/logout`, the frontend resets `model.loggedIn` boolean and re-requests the target---that's how we'll flush that target's `userDeps`.
 
 -}
 
@@ -204,8 +206,8 @@ update msg model =
         Login ->
             ( model, login "doesntmatter" )
 
-        Authenticated str ->
-            ( model, getPing )
+        Authenticated jwt ->
+            ( model, provideJwt jwt )
 
         PingResponse (Ok str) ->
             ( { model | loggedIn = True }, Cmd.none )
@@ -454,6 +456,23 @@ update msg model =
 
         ClearErr ->
             ( { model | err = "" }, Cmd.none )
+
+
+provideJwt : String -> Cmd Msg
+provideJwt token =
+    Http.send PingResponse
+        (Http.request
+            { method = "GET"
+            , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+            , url =
+                "http://localhost:3000/login"
+            , body =
+                Http.emptyBody
+            , expect = Http.expectString
+            , timeout = Nothing
+            , withCredentials = True
+            }
+        )
 
 
 getPing : Cmd Msg
