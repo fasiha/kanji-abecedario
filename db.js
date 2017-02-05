@@ -150,23 +150,15 @@ function firstNoDeps() {
 }
 
 function firstNoDepsUser(user) {
-  return myhash(user)
-      .then(hash => db.allAsync(`SELECT target, rowid
+  return addDepsToTargetRowidPromise(
+      myhash(user).then(hash => db.allAsync(`SELECT target, rowid
                  FROM targets
                  WHERE target NOT IN (SELECT DISTINCT target
                                       FROM deps
                                       WHERE deps.user = ?)
                  ORDER BY rowid
                  LIMIT 1`,
-                                [ hash ]))
-      .then(x => {
-        if (x.length > 0) {
-          var o = x[0];
-          o.deps = [];
-          return o;
-        }
-        return [];
-      });
+                                            [ hash ])));
 }
 
 function addDepsToTargetRowidPromise(promise) {

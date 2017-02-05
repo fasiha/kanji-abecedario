@@ -54,7 +54,6 @@ type alias Model =
     , selectedKanjis : Set String
     , kanjiOnly : Dict String Int
     , myKanji : List UserDeps
-    , depsKanjiString : String
     }
 
 
@@ -68,7 +67,6 @@ init initialLocation =
         Set.empty
         Dict.empty
         []
-        ""
     , Cmd.batch
         [ (case Url.parseHash route initialLocation of
             Just (RoutePos pos) ->
@@ -299,7 +297,6 @@ update msg model =
                                 |> Maybe.map (\target -> { target | userDeps = Just deps.deps })
                         , selectedKanjis = Set.fromList kanjis
                         , selected = Set.fromList primitives
-                        , depsKanjiString = String.join "" kanjis
                     }
               else
                 model
@@ -357,7 +354,7 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just target ->
-                    ( { model | selected = Set.empty, selectedKanjis = Set.empty, depsKanjiString = "" }
+                    ( { model | selected = Set.empty, selectedKanjis = Set.empty }
                     , record
                         target.target
                         (Set.toList <| Set.union model.selected model.selectedKanjis)
@@ -379,8 +376,7 @@ update msg model =
 
         Input text ->
             ( { model
-                | depsKanjiString = text
-                , selectedKanjis =
+                | selectedKanjis =
                     text
                         |> String.split ""
                         |> List.filter ((flip Dict.member) model.kanjiOnly)
@@ -642,7 +638,7 @@ view model =
         , renderTarget model.target model.primitives
         , renderTargetDeps model.target model.primitives
         , renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
-        , renderKanjiAsker model.depsKanjiString
+        , renderKanjiAsker <| String.join "" <| Set.toList model.selectedKanjis
         , renderPrimitives model.selected model.primitives
         , lazy renderPrimitivesDispOnly model.primitives
         , renderKanjiJump
