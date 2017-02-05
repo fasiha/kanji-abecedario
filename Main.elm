@@ -587,7 +587,7 @@ renderErr err =
 
 renderKanjiJump : Html Msg
 renderKanjiJump =
-    div []
+    div [ class "jump-section" ]
         [ Html.h2 [] [ text "Enter a kanji to tag!" ]
         , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
         , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
@@ -597,7 +597,7 @@ renderKanjiJump =
 renderKanjiAsker : String -> Html Msg
 renderKanjiAsker depsKanjiString =
     div []
-        [ Html.h3 [] [ text "Or enter non-primitive kanji components here:" ]
+        [ Html.h3 [] [ text "Or type components here:" ]
         , Html.input [ HA.value depsKanjiString, HA.placeholder "Enter kanji here", onInput Input ] []
         ]
 
@@ -759,7 +759,7 @@ renderPrimitiveDispOnly pos primitive =
 
 renderPrimitivesDispOnly : Dict String Primitive -> Html Msg
 renderPrimitivesDispOnly primitiveList =
-    div []
+    div [ class "jump-section" ]
         [ Html.h2 [] [ text "Jump to a primitive to tag it!" ]
         , div [ HA.class "primitive-container-disp" ]
             (List.indexedMap renderPrimitiveDispOnly <| List.sortBy .i <| Dict.values primitiveList)
@@ -774,7 +774,7 @@ renderKanji target =
 
 renderKanjis : Dict String Int -> Html Msg
 renderKanjis kanjis =
-    div []
+    div [ class "jump-section" ]
         [ Html.h2 [] [ text "Click on a kanji to tag!" ]
         , div [ HA.class "kanji-container" ]
             (kanjis
