@@ -47,7 +47,7 @@ type alias Primitive =
 
 type alias Model =
     { err : String
-    , token : String
+    , loggedIn : Bool
     , target : Maybe Target
     , primitives : Dict String Primitive
     , selected : Set String
@@ -61,7 +61,7 @@ type alias Model =
 init : Navigation.Location -> ( Model, Cmd Msg )
 init initialLocation =
     ( Model ""
-        ""
+        False
         Nothing
         Dict.empty
         Set.empty
@@ -82,6 +82,7 @@ init initialLocation =
           )
         , getPrimitives
         , getKanjiOnly
+        , getPing
         ]
     )
 
@@ -155,14 +156,28 @@ routeToFragment route =
 
 
 -- UPDATE
+{- SO.
+
+   Login happens with JWT. When a button click or whatever invokes the `Login` Msg, Elm asks JavaScript to ask Auth0 to do its thing. Then the user provides their GitHub credentials to GitHub, or whatever, and Auth0 reloads this page. In JavaScript-land (cf., `frontend.js`), JavaScript will make a GET request to `/login` with the JWT token Auth0 got for us. This establishes a session on the backend, and once this is done, JavaScript tells Elm, via a subscription called `gotAuthenticated`, which in turn sends the `Authenticated` Msg.
+
+    According to http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/ we shoulnd't use JWT as sessions, so that's why we do this: the client gives the JWT authentication token to the backend and is 'logged in'.
+
+    Once we're `Authenticated`, and at Elm initialization, we send the `getPing` Cmd, which checks whether we're logged into the backend---specifically, if the backend has a session for us. Elm doesn't really care about the response: it's only here so Elm can show a "Login" or a "Logout" button. If you try to make a personalized request, Elm will send your request to the backend, which might reject it as unauthorized 401. In that case, Elm will re-send the `Login` Msg and Auth0 will come up, asking you to log in again.
+
+    So. We authenticate with Auth0 but all the authorization happens with backend sessions. "Logout" means kill the session on the backend. The only thing to do in the frontend is reset `model.loggedIn` boolean and re-request the target---that's how we'll flush that target's `userDeps`.
+
+-}
 
 
 type Msg
     = Login
+    | Authenticated String
+    | PingResponse (Result Http.Error String)
+    | Logout
+    | LoggedOut (Result Http.Error String)
     | AskFirstNoDeps
     | AskFirstNoDepsUser
     | GotTarget (Result Http.Error Target)
-    | GotLocalStorage String
     | GotPrimitives (Result Http.Error (List Primitive))
     | SelectPrimitive String
     | Record
@@ -183,25 +198,40 @@ type Msg
 port login : String -> Cmd msg
 
 
-delayClearErr : Cmd Msg
-delayClearErr =
-    Task.perform identity
-        (Process.sleep (2 * Time.second)
-            |> Task.andThen (\() -> Task.succeed ClearErr)
-        )
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Login ->
             ( model, login "doesntmatter" )
 
+        Authenticated str ->
+            ( model, getPing )
+
+        PingResponse (Ok str) ->
+            ( { model | loggedIn = True }, Cmd.none )
+
+        PingResponse (Err err) ->
+            ( { model | loggedIn = False }, Cmd.none )
+
+        Logout ->
+            ( model, logoutCmd )
+
+        LoggedOut _ ->
+            ( { model | loggedIn = False }
+            , Cmd.batch
+                [ getPing
+                , (model.target
+                    |> Maybe.map (.pos >> getPos)
+                    |> withDefault askFirstNoDeps
+                  )
+                ]
+            )
+
         AskFirstNoDeps ->
             ( model, askFirstNoDeps )
 
         AskFirstNoDepsUser ->
-            ( model, askFirstNoDepsUser model.token )
+            ( model, askFirstNoDepsUser )
 
         GotTarget (Ok target) ->
             let
@@ -214,7 +244,7 @@ update msg model =
                   else
                     Cmd.batch
                         [ Navigation.newUrl url
-                        , askForUserDeps model.token target.target
+                        , askForUserDeps target.target
                         ]
                 )
 
@@ -251,7 +281,7 @@ update msg model =
         AskForUserDeps ->
             ( model
             , model.target
-                |> Maybe.map (askForUserDeps model.token << .target)
+                |> Maybe.map (askForUserDeps << .target)
                 |> withDefault Cmd.none
             )
 
@@ -290,9 +320,6 @@ update msg model =
                 _ ->
                     ( { model | err = (toString err) }, delayClearErr )
 
-        GotLocalStorage str ->
-            ( { model | token = str }, Cmd.none )
-
         GotPrimitives (Err err) ->
             ( { model | err = (toString err) }, delayClearErr )
 
@@ -318,7 +345,6 @@ update msg model =
                 Just target ->
                     ( { model | selected = Set.empty, selectedKanjis = Set.empty, depsKanjiString = "" }
                     , record
-                        model.token
                         target.target
                         (Set.toList <| Set.union model.selected model.selectedKanjis)
                     )
@@ -353,7 +379,7 @@ update msg model =
             ( model
             , model.target
                 |> Maybe.map
-                    (\target -> str |> String.split "," |> record model.token target.target)
+                    (\target -> str |> String.split "," |> record target.target)
                 |> withDefault Cmd.none
             )
 
@@ -401,7 +427,7 @@ update msg model =
             ( { model | err = toString err }, delayClearErr )
 
         MyKanji ->
-            ( model, myKanji model.token )
+            ( model, myKanji )
 
         GotMyKanji (Ok list) ->
             ( { model | myKanji = list }, Cmd.none )
@@ -430,53 +456,71 @@ update msg model =
             ( { model | err = "" }, Cmd.none )
 
 
-myKanji : String -> Cmd Msg
-myKanji token =
+getPing : Cmd Msg
+getPing =
+    Http.send PingResponse (Http.getString "http://localhost:3000/secured/ping")
+
+
+logoutCmd : Cmd Msg
+logoutCmd =
+    Http.send LoggedOut (Http.getString "http://localhost:3000/logout")
+
+
+delayClearErr : Cmd Msg
+delayClearErr =
+    Task.perform identity
+        (Process.sleep (2 * Time.second)
+            |> Task.andThen (\() -> Task.succeed ClearErr)
+        )
+
+
+myKanji : Cmd Msg
+myKanji =
     Http.send GotMyKanji
         (Http.request
             { method = "GET"
-            , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+            , headers = []
             , url =
                 "http://localhost:3000/secured/myDeps"
             , body =
                 Http.emptyBody
             , expect = Http.expectJson (Decode.list userDepsDecoder)
             , timeout = Nothing
-            , withCredentials = False
+            , withCredentials = True
             }
         )
 
 
-askForUserDeps : String -> String -> Cmd Msg
-askForUserDeps token target =
+askForUserDeps : String -> Cmd Msg
+askForUserDeps target =
     Http.send GotUserDeps
         (Http.request
             { method = "GET"
-            , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+            , headers = []
             , url =
                 "http://localhost:3000/secured/userDeps/" ++ target
             , body =
                 Http.emptyBody
             , expect = Http.expectJson userDepsDecoder
             , timeout = Nothing
-            , withCredentials = False
+            , withCredentials = True
             }
         )
 
 
-record : String -> String -> List String -> Cmd Msg
-record token target deps =
+record : String -> List String -> Cmd Msg
+record target deps =
     Http.send GotTarget
         (Http.request
             { method = "POST"
-            , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+            , headers = []
             , url =
                 "http://localhost:3000/secured/record/" ++ target
             , body =
                 Http.jsonBody (Encode.list (List.map Encode.string deps))
             , expect = Http.expectJson targetDecoder
             , timeout = Nothing
-            , withCredentials = False
+            , withCredentials = True
             }
         )
 
@@ -500,19 +544,19 @@ askFirstNoDeps =
     Http.send GotTarget (Http.get "http://localhost:3000/firstNoDeps" targetDecoder)
 
 
-askFirstNoDepsUser : String -> Cmd Msg
-askFirstNoDepsUser token =
+askFirstNoDepsUser : Cmd Msg
+askFirstNoDepsUser =
     Http.send GotTarget
         (Http.request
             { method = "GET"
-            , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
+            , headers = []
             , url =
                 "http://localhost:3000/secured/firstNoDeps"
             , body =
                 Http.emptyBody
             , expect = Http.expectJson targetDecoder
             , timeout = Nothing
-            , withCredentials = False
+            , withCredentials = True
             }
         )
 
@@ -532,12 +576,12 @@ getTarget target =
 -- SUBSCRIPTIONS
 
 
-port gotLocalStorage : (String -> msg) -> Sub msg
+port gotAuthenticated : (String -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    gotLocalStorage GotLocalStorage
+    gotAuthenticated Authenticated
 
 
 
@@ -547,11 +591,10 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ renderErr model.err
-        , if model.token == "" then
-            button [ onClick Login ] [ text "Login" ]
+        [ if model.loggedIn then
+            button [ onClick Logout ] [ text "Logout" ]
           else
-            text ""
+            button [ onClick Login ] [ text "Login" ]
         , button [ onClick MyKanji ] [ text "My kanji" ]
         , button
             [ onClick Previous
@@ -573,7 +616,7 @@ view model =
         , lazy renderPrimitivesDispOnly model.primitives
         , renderKanjiJump
         , lazy renderKanjis model.kanjiOnly
-          -- , renderModel model
+        , renderModel model
         ]
 
 
@@ -792,8 +835,8 @@ renderModel model =
         [ text
             (toString
                 { model
-                    | primitives = Dict.empty
-                    , token = String.slice 0 5 model.token
+                    | primitives =
+                        Dict.empty
                     , kanjiOnly = List.take 10 <| Dict.toList model.kanjiOnly
                 }
             )

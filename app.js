@@ -2,9 +2,10 @@ var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
-var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var jwt = require('express-jwt');
+var session = require('express-session');
+var LevelStore = require('level-session-store')(session);
 var cors = require('cors');
 var http = require('http');
 var compression = require('compression')
@@ -14,10 +15,17 @@ var db = require('./db');
 
 var app = express();
 var router = express.Router();
-var authenticate = jwt({
+var jwtAuthenticate = jwt({
   secret : process.env.AUTH0_CLIENT_SECRET,
   audience : process.env.AUTH0_CLIENT_ID
 });
+var sessionAuthenticate = (req, res, next) => {
+  if (req.session.user) {
+    next();
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+};
 
 app.set('x-powered-by', false);
 app.use(cors());
@@ -28,11 +36,19 @@ app.use(compression()); // Small payloads like JSON responses don't compress...
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : false}));
-app.use(cookieParser());
+app.use(session({
+  cookie : {maxAge : 1e3 * 3600 * 24 * 7},
+  secret : process.env.SESSION_SECRET,
+  resave : false,
+  rolling : false,
+  saveUninitialized : false,
+  store : new LevelStore()
+}));
 
 app.use(express.static('public'));
 app.use('/data', express.static('data'))
-app.use('/secured', authenticate);
+app.use('/login', jwtAuthenticate);
+app.use('/secured', sessionAuthenticate);
 
 app.use((err, req, res, next) => {
   if (err.name === 'UnauthorizedError') {
@@ -40,12 +56,25 @@ app.use((err, req, res, next) => {
   }
 });
 
+app.get('/login', (req, res) => {
+  req.session.user = {sub : req.user.sub};
+  res.send("OK");
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error('ERROR destroying session', err);
+    }
+    res.redirect('/');
+  });
+});
+
 app.get('/ping', (req, res) => {
   res.send("All good. You don't need to be authenticated to call this");
 });
 
 app.get('/secured/ping', (req, res) => {
-  // console.log("user sub to hash", req.user.sub);
   res.status(200).send(
       "All good. You only get this message if you're authenticated");
 });
@@ -61,7 +90,7 @@ var makeError = (res, errname) => (err => {
 });
 
 app.post('/secured/record/:target', (req, res) => {
-  db.record(req.params.target, req.user.sub, req.body)
+  db.record(req.params.target, req.session.user.sub, req.body)
       .then(_ => res.redirect(`/getTarget/${req.params.target}`))
       .catch(makeError(res, 'record'));
 });
@@ -81,7 +110,7 @@ app.get('/firstNoDeps', (req, res) => {
 });
 
 app.get('/secured/firstNoDeps', (req, res) => {
-  db.firstNoDepsUser(req.user.sub)
+  db.firstNoDepsUser(req.session.user.sub)
       .then(result => result.length === 0
                           ? res.status(404).send('no rows found')
                           : res.json(result))
@@ -89,7 +118,7 @@ app.get('/secured/firstNoDeps', (req, res) => {
 });
 
 app.get('/secured/userDeps/:target', (req, res) => {
-  db.userDeps(req.params.target, req.user.sub)
+  db.userDeps(req.params.target, req.session.user.sub)
       .then(result => result.length === 0
                           ? res.status(404).send('no rows found')
                           : res.json(result))
@@ -97,7 +126,7 @@ app.get('/secured/userDeps/:target', (req, res) => {
 });
 
 app.get('/secured/myDeps', (req, res) => {
-  db.myDeps(req.user.sub)
+  db.myDeps(req.session.user.sub)
       .then(result => res.json(result))
       .catch(makeError(res, 'myDeps'));
 });

@@ -13,10 +13,19 @@ lock.on("authenticated", function(authResult) {
     // localStorage.setItem("accessToken", authResult.accessToken);
     // localStorage.setItem("profile", JSON.stringify(profile));
 
-    // Send to Elm
-    if (app && app.ports) {
-      app.ports.gotLocalStorage.send(authResult.idToken);
-    }
+    // Establish a session on the server
+    let header = new Headers();
+    header.append('Authorization', 'Bearer ' + authResult.idToken);
+    fetch('http://localhost:3000/login',
+          {method : 'GET', headers : header, credentials : 'same-origin'})
+        .then(res => {
+          if (res.status !== 200) {
+            console.error(`Response status: ${res.status}`);
+          }
+          if (app && app.ports && app.ports.gotAuthenticated) {
+            app.ports.gotAuthenticated.send('!');
+          }
+        });
 
   });
 });

@@ -1,7 +1,8 @@
 # Todo
 
+- [ ] Full-screen Elm?
 - [ ] Add numbers to hover over primitives
-- [ ] JWT->session?
+- [x] JWT->session?
 - [ ] Download CSV of my kanji
 - [ ] CSS-ify primitives/kanji list and error flash
 - [ ] Easy lookup of primitives by existing decompositions
