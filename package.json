@@ -6,7 +6,8 @@
   "scripts": {
     "test": "tape 'tests/**/*-test.js'",
     "min": "google-closure-compiler-js --compilationLevel SIMPLE --createSourceMap true public/main.js --assumeFunctionWrapper true > public/.min && mv public/.min public/main.min.js",
-    "watch": "fswatch -0 *.elm public/index.html | xargs -0 -n 1 ./build.sh"
+    "watch": "make && fswatch -0 *.elm public/index.html | xargs -I % -0 -n 1 make",
+    "serve": "nodemon -i public/ app.js"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +25,7 @@
     "level": "^1.5.0",
     "level-session-store": "^2.0.1",
     "morgan": "^1.7.0",
+    "nodemon": "^1.11.0",
     "serve-favicon": "^2.3.2",
     "sqlite3": "^3.1.8",
     "xml2js": "^0.4.17"
