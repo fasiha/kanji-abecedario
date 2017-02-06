@@ -614,15 +614,19 @@ bulma model =
                 [ Html.h1 [ class "title" ] <| renderTarget model.target model.primitives
                 , div [ class "columns" ]
                     [ div [ class "column is-one-third" ]
-                        [ Html.h2 [ class "subtitle" ] [ text "Your selection:" ]
-                        , div [ class "contents" ] <| renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
+                        [ Html.article [ class "notification" ]
+                            [ Html.h2 [ class "subtitle" ] [ text "Your breakdown:" ]
+                            , div [ class "contents" ] <| renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
+                            ]
                         , Html.h2 [ class "subtitle" ] [ text "Existing choices:" ]
                         , div [ class "contents" ] <| renderTargetDeps model.target model.primitives
                         ]
                     , div [ class "column" ]
-                        [ Html.h2 [ class "subtitle" ] [ text "Enter some kanji:" ]
-                        , div [ class "contents" ] <| renderKanjiAsker <| String.join "" <| Set.toList model.selectedKanjis
-                        , Html.h2 [ class "subtitle" ] [ text "Pick some primitives:" ]
+                        [ Html.article [ class "notification is-success" ]
+                            [ Html.h2 [ class "subtitle" ] [ text "Enter kanji for breakdown:" ]
+                            , div [ class "contents" ] <| renderKanjiAsker <| String.join "" <| Set.toList model.selectedKanjis
+                            ]
+                        , Html.h2 [ class "subtitle" ] [ text "Select primitives for breakdown:" ]
                         , div [ class "contents" ] <| renderPrimitives model.selected model.primitives
                         ]
                     ]
@@ -630,16 +634,18 @@ bulma model =
             ]
         , Html.section [ class "section" ]
             [ div [ class "container" ]
-                [ Html.h1 [ class "title" ] [ text "Select a kanji to break down!" ]
+                [ Html.h1 [ class "title" ] [ text "Select what character to break down!" ]
                 , div [ class "columns" ]
                     [ div [ class "column is-one-third" ]
-                        [ Html.h2 [ class "subtitle" ] [ text "Type in a kanji to jump to!" ]
-                        , div [ class "contents" ] <| renderKanjiJump
-                        , Html.h2 [ class "subtitle" ] [ text "Click on a kanji!" ]
+                        [ Html.article [ class "notification is-success" ]
+                            [ Html.h2 [ class "subtitle" ] [ text "Type in a kanji to break it down!" ]
+                            , div [ class "contents" ] <| renderKanjiJump
+                            ]
+                        , Html.h2 [ class "subtitle" ] [ text "Click on a kanji to break it down!" ]
                         , lazy bulmaLazyKanji model.kanjiOnly
                         ]
                     , div [ class "column" ]
-                        [ Html.h2 [ class "subtitle" ] [ text "Click on a primitive!" ]
+                        [ Html.h2 [ class "subtitle" ] [ text "Click on a primitive to break it down!" ]
                         , lazy bulmaLazyPrimitives model.primitives
                         ]
                     ]
