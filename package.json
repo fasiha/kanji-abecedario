@@ -25,14 +25,15 @@
     "level": "^1.5.0",
     "level-session-store": "^2.0.1",
     "morgan": "^1.7.0",
-    "nodemon": "^1.11.0",
     "serve-favicon": "^2.3.2",
     "sqlite3": "^3.1.8",
     "xml2js": "^0.4.17"
   },
   "devDependencies": {
+    "csso": "^2.3.1",
     "google-closure-compiler-js": "^20161201.0.1",
     "lodash": "^4.17.4",
+    "nodemon": "^1.11.0",
     "tape": "^4.6.3"
   }
 }
