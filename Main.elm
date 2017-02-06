@@ -635,16 +635,61 @@ view model =
         , button [ onClick Next ] [ text "Next kanji" ]
         , button [ onClick AskFirstNoDeps ] [ text "First kanji without any votes" ]
         , button [ onClick AskFirstNoDepsUser ] [ text "First kanji without my vote" ]
-        , renderTarget model.target model.primitives
-        , renderTargetDeps model.target model.primitives
-        , renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
-        , renderKanjiAsker <| String.join "" <| Set.toList model.selectedKanjis
-        , renderPrimitives model.selected model.primitives
-        , lazy renderPrimitivesDispOnly model.primitives
-        , renderKanjiJump
-        , lazy renderKanjis model.kanjiOnly
-        , renderModel model
+        , bulma model
         ]
+
+
+bulma : Model -> Html Msg
+bulma model =
+    div []
+        [ Html.section [ class "section" ]
+            [ div [ class "container" ]
+                [ Html.h1 [ class "title" ] <| renderTarget model.target model.primitives
+                , div [ class "columns" ]
+                    [ div [ class "column is-one-third" ]
+                        [ Html.h2 [ class "subtitle" ] [ text "Your selection:" ]
+                        , div [ class "contents" ] <| renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
+                        , Html.h2 [ class "subtitle" ] [ text "Existing choices:" ]
+                        , div [ class "contents" ] <| renderTargetDeps model.target model.primitives
+                        ]
+                    , div [ class "column" ]
+                        [ Html.h2 [ class "subtitle" ] [ text "Enter some kanji:" ]
+                        , div [ class "contents" ] <| renderKanjiAsker <| String.join "" <| Set.toList model.selectedKanjis
+                        , Html.h2 [ class "subtitle" ] [ text "Pick some primitives:" ]
+                        , div [ class "contents" ] <| renderPrimitives model.selected model.primitives
+                        ]
+                    ]
+                ]
+            ]
+        , Html.section [ class "section" ]
+            [ div [ class "container" ]
+                [ Html.h1 [ class "title" ] [ text "Select a kanji to break down!" ]
+                , div [ class "columns" ]
+                    [ div [ class "column is-one-third" ]
+                        [ Html.h2 [ class "subtitle" ] [ text "Type in a kanji to jump to!" ]
+                        , div [ class "contents" ] <| renderKanjiJump
+                        , Html.h2 [ class "subtitle" ] [ text "Click on a kanji!" ]
+                        , lazy bulmaLazyKanji model.kanjiOnly
+                        ]
+                    , div [ class "column" ]
+                        [ Html.h2 [ class "subtitle" ] [ text "Click on a primitive!" ]
+                        , lazy bulmaLazyPrimitives model.primitives
+                        ]
+                    ]
+                ]
+            ]
+        , Html.section [ class "hero is-warning" ] [ div [ class "container" ] [ div [] <| renderModel model ] ]
+        ]
+
+
+bulmaLazyKanji : Dict String Int -> Html Msg
+bulmaLazyKanji kanjiOnly =
+    div [ class "contents" ] <| renderKanjis kanjiOnly
+
+
+bulmaLazyPrimitives : Dict String Primitive -> Html Msg
+bulmaLazyPrimitives primitives =
+    div [ class "contents primitive-container-disp" ] <| renderPrimitivesDispOnly primitives
 
 
 renderErr : String -> Html Msg
@@ -655,21 +700,16 @@ renderErr err =
         div [ class "error-notification" ] [ text err ]
 
 
-renderKanjiJump : Html Msg
+renderKanjiJump : List (Html Msg)
 renderKanjiJump =
-    div [ class "jump-section" ]
-        [ Html.h2 [] [ text "Enter a kanji to tag!" ]
-        , Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
-        , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
-        ]
+    [ Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
+    , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
+    ]
 
 
-renderKanjiAsker : String -> Html Msg
+renderKanjiAsker : String -> List (Html Msg)
 renderKanjiAsker depsKanjiString =
-    div []
-        [ Html.h3 [] [ text "Enter your own decomposition’s components!" ]
-        , Html.input [ HA.value depsKanjiString, HA.placeholder "Enter kanji here", onInput Input ] []
-        ]
+    [ Html.input [ HA.value depsKanjiString, HA.placeholder "Enter kanji here", onInput Input ] [] ]
 
 
 svgKanji : String -> Html msg
@@ -685,62 +725,52 @@ renderCheck =
     Html.span [ class "user-vote-check", HA.title "You have voted!" ] [ text " ✅" ]
 
 
-renderTarget : Maybe Target -> Dict String Primitive -> Html Msg
+renderTarget : Maybe Target -> Dict String Primitive -> List (Html Msg)
 renderTarget maybetarget primitives =
     case maybetarget of
         Just target ->
-            div []
-                [ Html.h1 []
-                    [ text
-                        ((if target.userDeps == Nothing then
-                            "Help us decompose #"
-                          else
-                            "Thanks for decomposing #"
-                         )
-                            ++ (toString target.pos)
-                            ++ "! "
-                        )
-                    , Dict.get target.target primitives
-                        |> Maybe.map (svgPrimitive "heading-svg")
-                        |> withDefault (text target.target)
-                    , target.userDeps
-                        |> Maybe.map (always renderCheck)
-                        |> withDefault (text "")
-                    ]
-                ]
-
-        Nothing ->
-            div [] [ text "(Waiting for network)" ]
-
-
-renderSelected : Set String -> Dict String Primitive -> Html Msg
-renderSelected selecteds primitives =
-    div [] <|
-        if Set.isEmpty selecteds then
-            []
-        else
-            [ Html.h4 [] [ text "Your picks:" ]
-            , div []
-                (selecteds
-                    |> Set.toList
-                    |> List.map
-                        (\s ->
-                            Dict.get s primitives
-                                |> Maybe.map (svgPrimitive "dependency")
-                                |> withDefault (svgKanji s)
-                        )
+            [ text
+                ((if target.userDeps == Nothing then
+                    "Help us break down #"
+                  else
+                    "Thanks for breaking down #"
+                 )
+                    ++ (toString target.pos)
+                    ++ "! "
                 )
-            , button [ onClick Record ] [ text "Submit" ]
+            , Dict.get target.target primitives
+                |> Maybe.map (svgPrimitive "heading-svg")
+                |> withDefault (text target.target)
             ]
 
+        Nothing ->
+            [ text "(Waiting for network)" ]
 
-renderPrimitives : Set String -> Dict String Primitive -> Html Msg
-renderPrimitives selected primitives =
-    div []
-        [ Html.h3 [] [ text "Select any of the following components!" ]
-        , div [ HA.class "primitive-container" ]
-            (List.indexedMap (renderPrimitive selected) <| List.sortBy .i <| Dict.values primitives)
+
+renderSelected : Set String -> Dict String Primitive -> List (Html Msg)
+renderSelected selecteds primitives =
+    if Set.isEmpty selecteds then
+        []
+    else
+        [ div []
+            (selecteds
+                |> Set.toList
+                |> List.map
+                    (\s ->
+                        Dict.get s primitives
+                            |> Maybe.map (svgPrimitive "dependency")
+                            |> withDefault (svgKanji s)
+                    )
+            )
+        , button [ onClick Record ] [ text "Submit" ]
         ]
+
+
+renderPrimitives : Set String -> Dict String Primitive -> List (Html Msg)
+renderPrimitives selected primitives =
+    [ div [ HA.class "primitive-container" ]
+        (List.indexedMap (renderPrimitive selected) <| List.sortBy .i <| Dict.values primitives)
+    ]
 
 
 renderPrimitive : Set String -> Int -> Primitive -> Html Msg
@@ -807,20 +837,17 @@ renderOneDeps primitives userDeps dep =
             ]
 
 
-renderTargetDeps : Maybe Target -> Dict String Primitive -> Html Msg
+renderTargetDeps : Maybe Target -> Dict String Primitive -> List (Html Msg)
 renderTargetDeps target primitives =
     case target of
         Nothing ->
-            text ""
+            [ text "" ]
 
         Just target ->
-            div [] <|
-                if List.isEmpty target.deps then
-                    []
-                else
-                    [ Html.h3 [] [ text "Are any of these existing decompositions to your liking?" ]
-                    , Html.ul [] <| List.map (renderOneDeps primitives target.userDeps) target.deps
-                    ]
+            if List.isEmpty target.deps then
+                [ text "" ]
+            else
+                [ Html.ul [] <| List.map (renderOneDeps primitives target.userDeps) target.deps ]
 
 
 renderPrimitiveDispOnly : Int -> Primitive -> Html Msg
@@ -829,13 +856,9 @@ renderPrimitiveDispOnly pos primitive =
         [ svgPrimitive "" primitive ]
 
 
-renderPrimitivesDispOnly : Dict String Primitive -> Html Msg
+renderPrimitivesDispOnly : Dict String Primitive -> List (Html Msg)
 renderPrimitivesDispOnly primitiveList =
-    div [ class "jump-section" ]
-        [ Html.h2 [] [ text "Jump to a primitive to tag it!" ]
-        , div [ HA.class "primitive-container-disp" ]
-            (List.indexedMap renderPrimitiveDispOnly <| List.sortBy .i <| Dict.values primitiveList)
-        ]
+    (List.indexedMap renderPrimitiveDispOnly <| List.sortBy .i <| Dict.values primitiveList)
 
 
 renderKanji : String -> Html Msg
@@ -844,29 +867,23 @@ renderKanji target =
         [ text target ]
 
 
-renderKanjis : Dict String Int -> Html Msg
+renderKanjis : Dict String Int -> List (Html Msg)
 renderKanjis kanjis =
-    div [ class "jump-section" ]
-        [ Html.h2 [] [ text "Click on a kanji to tag!" ]
-        , div [ HA.class "kanji-container" ]
-            (kanjis
-                |> Dict.toList
-                |> List.sortBy Tuple.second
-                |> List.map Tuple.first
-                |> List.map renderKanji
-            )
-        ]
+    kanjis
+        |> Dict.toList
+        |> List.sortBy Tuple.second
+        |> List.map Tuple.first
+        |> List.map renderKanji
 
 
-renderModel : Model -> Html Msg
+renderModel : Model -> List (Html Msg)
 renderModel model =
-    div []
-        [ text
-            (toString
-                { model
-                    | primitives =
-                        Dict.empty
-                    , kanjiOnly = List.take 10 <| Dict.toList model.kanjiOnly
-                }
-            )
-        ]
+    [ text
+        (toString
+            { model
+                | primitives =
+                    Dict.empty
+                , kanjiOnly = List.take 10 <| Dict.toList model.kanjiOnly
+            }
+        )
+    ]
