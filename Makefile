@@ -1,7 +1,5 @@
-all: public/main.js public/dev.html
+all: public/main.js
 
 public/main.js: Main.elm
-	elm-make Main.elm --output=public/main.js
+	elm-make Main.elm --output=public/main.js && cp public/main.js public/main.min.js
 
-public/dev.html: public/index.html
-	sed -e "s:main.min.js:main.js:" public/index.html > public/dev.html
