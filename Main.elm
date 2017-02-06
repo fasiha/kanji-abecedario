@@ -53,7 +53,6 @@ type alias Model =
     , selected : Set String
     , selectedKanjis : Set String
     , kanjiOnly : Dict String Int
-    , myKanji : List UserDeps
     }
 
 
@@ -66,7 +65,6 @@ init initialLocation =
         Set.empty
         Set.empty
         Dict.empty
-        []
     , Cmd.batch
         [ (case Url.parseHash route initialLocation of
             Just (RoutePos pos) ->
@@ -190,8 +188,6 @@ type Msg
     | UrlChange Navigation.Location
     | AskForTarget
     | GotKanjiOnly (Result Http.Error String)
-    | MyKanji
-    | GotMyKanji (Result Http.Error (List UserDeps))
     | ClearErr
 
 
@@ -436,32 +432,6 @@ update msg model =
         GotKanjiOnly (Err err) ->
             ( { model | err = toString err }, delayClearErr )
 
-        MyKanji ->
-            ( model, myKanji )
-
-        GotMyKanji (Ok list) ->
-            ( { model | myKanji = list }, Cmd.none )
-
-        GotMyKanji (Err err) ->
-            case err of
-                -- Could be because of getPos/-1, getTarget/foo, or invalid record
-                -- Could be unauthorized
-                -- Could mean no targets lacking dependencies (in general or for a user)
-                Http.BadStatus res ->
-                    case (res |> .status |> .code) of
-                        401 ->
-                            ( { model | err = "Hey, looks like you need to be logged in to do that." }
-                            , Cmd.batch [ delayClearErr, login "doesntmatter" ]
-                            )
-
-                        _ ->
-                            ( { model | err = (toString err) }
-                            , delayClearErr
-                            )
-
-                _ ->
-                    ( { model | err = (toString err) }, delayClearErr )
-
         ClearErr ->
             ( { model | err = "" }, Cmd.none )
 
@@ -498,23 +468,6 @@ delayClearErr =
     Task.perform identity
         (Process.sleep (2 * Time.second)
             |> Task.andThen (\() -> Task.succeed ClearErr)
-        )
-
-
-myKanji : Cmd Msg
-myKanji =
-    Http.send GotMyKanji
-        (Http.request
-            { method = "GET"
-            , headers = []
-            , url =
-                "http://localhost:3000/secured/myDeps"
-            , body =
-                Http.emptyBody
-            , expect = Http.expectJson (Decode.list userDepsDecoder)
-            , timeout = Nothing
-            , withCredentials = True
-            }
         )
 
 
