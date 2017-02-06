@@ -42,7 +42,7 @@ console.log(repStrings.map(s => `<li>${s}</li>`).join('\n'));
 var engs = _.sortBy(dict.filter(([ s ]) => s.match(/[a-zA-Z]/)),
                     v => base2num.get(v[1]));
 var engSvgs = engs.map(v => svgs[v[1]][v[2] - 1]);
-var engStrings = engs.map(([ key, a, n ]) => `${key} = ${a.toUpperCase()}${n}`);
+var engStrings = engs.map(([ key, a, n ]) => `<a href="/#target/${key}">${key}</a> = ${a.toUpperCase()}${n}`);
 var rows =
     _.zip(engSvgs, engStrings).map(v => v.join(' ')).map(s => `<p>${s}</p>`);
 console.log(_.chunk(rows, Math.ceil(rows.length / 4))
