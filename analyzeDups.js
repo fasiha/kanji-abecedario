@@ -43,21 +43,21 @@ var engs = _.sortBy(dict.filter(([ s ]) => s.match(/[a-zA-Z]/)),
                     v => base2num.get(v[1]));
 var engSvgs = engs.map(v => svgs[v[1]][v[2] - 1]);
 var engStrings = engs.map(([ key, a, n ]) => `${key} = ${a.toUpperCase()}${n}`);
-var rows = _.zip(engSvgs, engStrings).map(v=>v.join(' ')).map(s=>`<p>${s}</p>`);
-console.log(_.chunk(rows, Math.ceil(rows.length/4)).map(v=>v.join('\n')).map(s=>`<div class="column">${s}</div>`).join('\n\n'))
+var rows =
+    _.zip(engSvgs, engStrings).map(v => v.join(' ')).map(s => `<p>${s}</p>`);
+console.log(_.chunk(rows, Math.ceil(rows.length / 4))
+                .map(v => v.join('\n'))
+                .map(s => `<div class="column">${s}</div>`)
+                .join('\n\n'))
 
-
-
-
-
-/*
-// See https://en.wikipedia.org/wiki/Web_colors
-var colors =
-    "Cornsilk,BlanchedAlmond,Gold,DarkKhaki,Wheat,BurlyWood,Tan,RosyBrown,SandyBrown,Goldenrod,DarkGoldenrod,Peru,Chocolate,SaddleBrown,Sienna,Brown,Maroon,Pink,MediumVioletRed,Salmon,IndianRed,Tomato,Crimson,DarkOliveGreen,Olive,YellowGreen,Chartreuse,DarkSeaGreen,MediumSeaGreen,PaleTurquoise,DarkTurquoise,CadetBlue,PowderBlue,DodgerBlue,Navy"
-        .split(',');
-colors.length
-var css = Object.keys(bases).map((s,i) => `svg.col-${s} {
-  border: 2px solid ${colors[i]};
-}`).join('\n');
-console.log(css)
-*/
+    /*
+    // See https://en.wikipedia.org/wiki/Web_colors
+    var colors =
+        "Cornsilk,BlanchedAlmond,Gold,DarkKhaki,Wheat,BurlyWood,Tan,RosyBrown,SandyBrown,Goldenrod,DarkGoldenrod,Peru,Chocolate,SaddleBrown,Sienna,Brown,Maroon,Pink,MediumVioletRed,Salmon,IndianRed,Tomato,Crimson,DarkOliveGreen,Olive,YellowGreen,Chartreuse,DarkSeaGreen,MediumSeaGreen,PaleTurquoise,DarkTurquoise,CadetBlue,PowderBlue,DodgerBlue,Navy"
+            .split(',');
+    colors.length
+    var css = Object.keys(bases).map((s,i) => `svg.col-${s} {
+      border: 2px solid ${colors[i]};
+    }`).join('\n');
+    console.log(css)
+    */
