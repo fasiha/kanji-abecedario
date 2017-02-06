@@ -617,25 +617,39 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ if model.loggedIn then
-            button [ onClick Logout ] [ text "Logout" ]
-          else
-            button [ onClick Login ] [ text "Login" ]
-        , button [ onClick MyKanji ] [ text "My kanji" ]
-        , button
-            [ onClick Previous
-            , HA.disabled
-                (model.target
-                    |> Maybe.map (.pos >> (>=) 1)
-                    |> withDefault True
-                )
+    div [] [ bulmaNav model, bulma model ]
+
+
+navButtonClass : String
+navButtonClass =
+    "button"
+
+
+bulmaNav : Model -> Html Msg
+bulmaNav model =
+    Html.nav [ class "nav" ]
+        [ div [ class "container" ]
+            [ div [ class "nav-left" ]
+                [ if model.loggedIn then
+                    Html.a [ class navButtonClass, onClick Logout ] [ text "Logout" ]
+                  else
+                    Html.a [ class navButtonClass, onClick Login ]
+                        [ text "Login" ]
+                , Html.a
+                    [ onClick Previous
+                    , class
+                        (if (model.target |> Maybe.map (.pos >> (>=) 1) |> withDefault True) then
+                            navButtonClass ++ " is-disabled"
+                         else
+                            navButtonClass
+                        )
+                    ]
+                    [ text "Previous kanji" ]
+                , Html.a [ class navButtonClass, onClick Next ] [ text "Next kanji" ]
+                , Html.a [ class navButtonClass, onClick AskFirstNoDeps ] [ text "First kanji without any votes" ]
+                , Html.a [ class navButtonClass, onClick AskFirstNoDepsUser ] [ text "First kanji without my vote" ]
+                ]
             ]
-            [ text "Previous kanji" ]
-        , button [ onClick Next ] [ text "Next kanji" ]
-        , button [ onClick AskFirstNoDeps ] [ text "First kanji without any votes" ]
-        , button [ onClick AskFirstNoDepsUser ] [ text "First kanji without my vote" ]
-        , bulma model
         ]
 
 
