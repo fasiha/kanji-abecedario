@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>About KanjiBreak</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link rel="stylesheet" type="text/css" href="bulma.css">
+</head>
+
+<section class="hero is-primary is-bold">
+  <div class="hero-body">
+    <div class="container">
+      <h1 class="title">
+        KanjiBreak
+      </h1>
+      <h2 class="subtitle">
+        Break down kanji with us!
+      </h2>
+    </div>
+  </div>
+  <div class="hero-foot">
+    <div class="container">
+      <nav class="tabs is-boxed">
+        <ul>
+          <li>
+            <a>Main</a>
+          </li>
+          <li class="is-active">
+            <a href="help.html">Help</a>
+          </li>
+          <li>
+            <a href="export.html">Export</a>
+          </li>
+        </ul>
+      </nav></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h1 class="title" id="help">Help</h1>
+    <h2 class="subtitle">What’s going on here?</h2>
+
+    <div class="content">
+      <p>
+         There are many databases of kanji and their breakdowns, for example: James Heisig’s <cite>Remembering the Kanji</cite>, Andreas Foerster and Naoko Tamura’s <a href="http://www.kanji-web.com"><cite>Kanji ABC</cite></a>, and <a href="http://www.kanjidamage.com">KANJIDAMAGE</a>.
+      </p>
+      <p>
+        <strong>KanjiBreak is a way to collaboratively build <em>new</em> databases of kanji breakdowns.</strong> You can submit your favorite ways to decompose kanji. You can use someone else’s breakdown as your own. You can export all the kanji you’ve decomposed, or that everyone’s decomposed.
+      </p>
+      <p>
+        KanjiBreak contains 2,991 jōyō (common-use) and jinmeiyō (name) kanji available for breaking down. There are also 461 “primitives”, of which 167 are <em>not</em> kanji, that you may use in decompositions, including most traditional Kangxi radicals. These primitives are inspired by Foerster–Tamura’s <cite>Kanji ABC</cite>—see <a href="#kanji-abc">below</a> for a detailed explanation of how these primitives relate to and differ from <cite>Kanji ABC</cite>. If you have a good idea for another primitive, please <a href="#contact">get in touch!</a>
+      </p>
+      <p>
+        Therefore, in all there are 3,158 characters available for breaking down. A decomposition can consist of one or more of any of these characters.
+      </p>
+    </div>
+
+    <h1 class="title" id="contact">Contact</h1>
+
+    <div class="content">
+      <p>
+        Please get in touch, with questions, comments, suggestions, anything! This website is created by Ahmed Fasih:
+        <ul>
+          <li>
+            <a href="mailto:wuzzyview@gmail.com">email</a>
+          </li>
+          <li>
+            <a href="https://twitter.com/gratidue">Tweet</a>
+          </li>
+          <li>
+            <a href="https://github.com/fasiha/kanji-abecedario">see the source code and leave a GitHub issue</a>
+          </li>
+          <li>
+            <a href="https://keybase.io/aldebrn">Keybase</a>
+          </li>
+        </ul>
+      </p>
+    </div>
+
+    <h1 class="title" id="kanji-abc">Deviations from Kanji ABC</h1>
+
+    <div class="content">
+      <p>
+        The 484 graphemes in <a href="http://www.kanji-web.com"><cite>Kanji ABC</cite></a> have been reduced to the 461 primitives in KanjiBreak by combining variants of the same primitive. While <cite>Kanji ABC</cite> is a tool for <em>learning</em> kanji, KanjiBreak is a tool for <em>making</em> kanji-learning resources, and so the decision was made to ignore sufficiently-similar variants, e.g., 雨 versus <a href="http://www.fileformat.info/info/unicode/char/2ed7/index.htm">⻗ (U+2ED7)</a>. Note, however, that this isn’t a clear-cut distinction as KanjiBreak recognizes the difference between, e.g., 心 and <a href="http://www.fileformat.info/info/unicode/char/5fc4/index.htm">忄 (U+5FC4)</a>.
+      </p>
+      <p>
+        Below is the list of normalized <cite>Kanji ABC</cite> graphemes.
+      </p>
+      <div class="columns">
+        <div class="column">
+          <p>禾: LE6, G4</p>
+          <p>米: LE7, J10</p>
+          <p>⻏: LE8, RI3</p>
+          <p>弓: LE9, Y11</p>
+          <p>糸: LE14, Q16</p>
+        </div>
+        <div class="column">
+          <p>王: LE15, I17</p>
+          <p>木: LE16, J1</p>
+          <p>言: LE17, B2</p>
+          <p>足: LE18, O8</p>
+          <p>酉: LE19, N7</p>
+        </div>
+        <div class="column">
+          <p>食: LE20, T7</p>
+          <p>金: LE21, T5</p>
+          <p>馬: LE22, Y8</p>
+          <p>日: LE23, C1</p>
+          <p>月: LE24, RI8, BO5, L14</p>
+        </div>
+        <div class="column">
+          <p>隹: RI7, G14</p>
+          <p>心: BO3, N3</p>
+          <p>土: FR6, I3</p>
+          <p>大: FR7, V9</p>
+          <p>釆: G5, J2</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+
+
+</html>
