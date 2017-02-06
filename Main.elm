@@ -611,7 +611,19 @@ bulma model =
     div []
         [ Html.section [ class "section" ]
             [ div [ class "container" ]
-                [ Html.h1 [ class "title" ] <| renderTarget model.target model.primitives
+                [ if String.isEmpty model.err then
+                    text ""
+                  else
+                    Html.article [ class "message is-danger" ]
+                        [ div [ class "message-header" ]
+                            [ Html.strong []
+                                [ text "Oops! "
+                                , Html.a [ HA.href "/help.html#errors" ] [ text "Encountered an error." ]
+                                ]
+                            ]
+                        , div [ class "message-body" ] [ text model.err ]
+                        ]
+                , Html.h1 [ class "title" ] <| renderTarget model.target model.primitives
                 , div [ class "columns" ]
                     [ div [ class "column is-one-third" ]
                         [ Html.article [ class "notification" ]
@@ -663,14 +675,6 @@ bulmaLazyKanji kanjiOnly =
 bulmaLazyPrimitives : Dict String Primitive -> Html Msg
 bulmaLazyPrimitives primitives =
     div [ class "contents primitive-container-disp" ] <| renderPrimitivesDispOnly primitives
-
-
-renderErr : String -> Html Msg
-renderErr err =
-    if String.isEmpty err then
-        div [] []
-    else
-        div [ class "error-notification" ] [ text err ]
 
 
 renderKanjiJump : List (Html Msg)

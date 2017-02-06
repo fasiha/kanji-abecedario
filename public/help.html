@@ -38,15 +38,15 @@
 
 <section class="section">
   <div class="container">
+
     <h1 class="title" id="help">Help</h1>
     <h2 class="subtitle">What’s going on here?</h2>
-
     <div class="content">
       <p>
          There are many databases of kanji and their breakdowns, for example: James Heisig’s <cite>Remembering the Kanji</cite>, Andreas Foerster and Naoko Tamura’s <a href="http://www.kanji-web.com"><cite>Kanji ABC</cite></a>, and <a href="http://www.kanjidamage.com">KANJIDAMAGE</a>.
       </p>
       <p>
-        <strong>KanjiBreak is a way to collaboratively build <em>new</em> databases of kanji breakdowns.</strong> You can submit your favorite ways to decompose kanji. You can use someone else’s breakdown as your own. You can export all the kanji you’ve decomposed, or that everyone’s decomposed.
+        <strong>KanjiBreak is a way to collaboratively build <em>new</em> databases of kanji breakdowns.</strong> You can submit your favorite ways to decompose kanji. You can use someone else’s breakdown as your own. You can <a href="export.html">export</a> all the kanji you’ve decomposed, or that everyone’s decomposed.
       </p>
       <p>
         KanjiBreak contains 2,991 jōyō (common-use) and jinmeiyō (name) kanji available for breaking down. There are also 461 “primitives”, of which 167 are <em>not</em> kanji, that you may use in decompositions, including most traditional Kangxi radicals. These primitives are inspired by Foerster–Tamura’s <cite>Kanji ABC</cite>—see <a href="#kanji-abc">below</a> for a detailed explanation of how these primitives relate to and differ from <cite>Kanji ABC</cite>. If you have a good idea for another primitive, please <a href="#contact">get in touch!</a>
@@ -54,10 +54,12 @@
       <p>
         Therefore, in all there are 3,158 characters available for breaking down. A decomposition can consist of one or more of any of these characters.
       </p>
+      <p>
+        See <a href="#legal">legal notices</a> for more details but since anyone can <a href="export.html">download</a> the entire KanjiBreak database of all breakdowns, by contributing your breakdown, you agree to share it with others.
+      </p>
     </div>
 
     <h1 class="title" id="contact">Contact</h1>
-
     <div class="content">
       <p>
         Please get in touch, with questions, comments, suggestions, anything! This website is created by Ahmed Fasih:
@@ -78,17 +80,37 @@
       </p>
     </div>
 
-    <h1 class="title" id="acknowledgements">Acknowledgements</h1>
+    <h1 class="title" id="errors">Website errors</h1>
+    <div class="content">
+      <p>
+        If you’re encountering a problem using KanjiBreak, please <a href="#contact">write to me</a>!
+      </p>
+      <p>
+        But the most common problem seems to be with login. If you are repeatedly asked to log in, it’s likely you’re running a browser add-on like PrivacyBadger that is blocking you from accessing <code>auth0.com</code> or <code>fasiha.auth0.com</code>, which are the services we use for login. More details about <a href="#legal">legal notices</a> are given below, but <em>KanjiBreak does not track you in <strong>any</strong> way</em>. Please consider allowing your browser access to domains ending in <code>auth0.com</code>.
+      </p>
+    </div>
 
+    <h1 class="title" id="acknowledgements">Acknowledgements</h1>
     <div class="content">
       <p>
         <cite>Kanji ABC</cite>! <a href="http://kanjivg.tagaini.net">KanjiVG</a>!
       </p>
     </div>
 
+    <h1 class="title" id="legal">Legal notices</h1>
+    <div class="content">
+      <p>
+        As both a programmer and a citizen, I am very concerned about the way websites closely track and monitor users’ activities. I refuse to make websites that do this. KanjiBreak uses a third-party service, <a href="https://auth0.com/">Auth0</a> to handle login, but otherwise uses <em>no trackers or analytics</em>. This means that Auth0, and your social network login provider (Facebook, GitHub), know when you log into KanjiBreak. But other than this, KanjiBreak does not record or store any data about its visitors, other than the bare minimum needed to function.
+      </p>
+      <p>
+        When you submit a breakdown for a kanji, the username you logged in with is cryptographically hashed and stored in the KanjiBreak database. That means that if evil hackers steal our database, in some future where being interested in Japanese is illegal (and given today’s political climate, who knows?), they won’t be able to know who submitted kanji breakdowns.
+      </p>
+      <p>
+        Because of this, the breakdowns that users contribute are available for everyone to <a href="export.html">download</a> under a <a href="https://creativecommons.org/share-your-work/public-domain/cc0/">CC0</a> “no rights reserved” license. Hopefully you’re ok with that—if not, don’t contribute any breakdowns.
+      </p>
+    </div>
 
-    <h1 class="title" id="kanji-abc">Deviations from Kanji ABC</h1>
-
+    <h1 class="title" id="kanji-abc">Technical appendix: Deviations from Kanji ABC</h1>
     <div class="content">
       <p>
         The 484 graphemes in <a href="http://www.kanji-web.com"><cite>Kanji ABC</cite></a> have been reduced to the 461 primitives in KanjiBreak by combining variants of the same primitive. While <cite>Kanji ABC</cite> is a tool for <em>learning</em> kanji, KanjiBreak is a tool for <em>making</em> kanji-learning resources, and so the decision was made to ignore sufficiently-similar variants, e.g., 雨 versus <a href="http://www.fileformat.info/info/unicode/char/2ed7/index.htm">⻗ (U+2ED7)</a>. Note, however, that this isn’t a clear-cut distinction as KanjiBreak recognizes the difference between, e.g., 心 and <a href="http://www.fileformat.info/info/unicode/char/5fc4/index.htm">忄 (U+5FC4)</a>.

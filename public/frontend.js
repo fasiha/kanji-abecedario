@@ -6,7 +6,7 @@ lock.on("authenticated", function(authResult) {
   lock.getUserInfo(authResult.accessToken, function(error, profile) {
 
     if (error) {
-      console.log("ERROR", error);
+      console.log("AUTH0 ERROR", error);
       return;
     }
     // localStorage.setItem('idToken', authResult.idToken); // JWT

@@ -9,7 +9,10 @@ var LevelStore = require('level-session-store')(session);
 var cors = require('cors');
 var http = require('http');
 var compression = require('compression')
+var assert = require('assert');
 require('dotenv').config();
+assert(process.env.AUTH0_CLIENT_SECRET && process.env.AUTH0_CLIENT_ID &&
+       process.env.SESSION_SECRET && process.env.SALT);
 
 var db = require('./db');
 

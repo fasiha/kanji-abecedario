@@ -41,7 +41,6 @@
 
 <div id="main"></div>
 
-<script src="./frontend.js" async></script>
 <script src="main.min.js"></script>
 <script>
   let node = document.getElementById('main');
@@ -50,7 +49,7 @@
   app.ports.login.subscribe(function(word) {
     lock.show();
   });
-
 </script>
+<script src="./frontend.js" async></script>
 
 </html>
