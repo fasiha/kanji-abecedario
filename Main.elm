@@ -238,7 +238,7 @@ update msg model =
                 url =
                     routeToFragment (RoutePos target.pos)
             in
-                ( { model | target = Just target }
+                ( { model | target = Just target, selected = Set.empty, selectedKanjis = Set.empty }
                 , if List.isEmpty target.deps then
                     Navigation.newUrl url
                   else
