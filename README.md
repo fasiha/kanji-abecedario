@@ -1,12 +1,13 @@
 # Todo
 
+- [ ] If a not-logged-in user adds a primitive and clicks submit, after login, their breakdown isn't preserved.
 - [ ] About + Export (static HTML, outside Elm)
-- [ ] CSS-ify primitives/kanji list and error flash
 - [ ] Easy lookup of primitives by existing decompositions
 - [ ] Event sourcing: store events with Dat and rebuild the state at each Node startup.
 
 Done
 
+- [x] CSS-ify primitives/kanji list and error flash
 - [x] Add numbers to hover over primitives
 - [x] JWT->session?
 - [x] User’s dependency breakdown should autopopulate, so it can be easily added to.

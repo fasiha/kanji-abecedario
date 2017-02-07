@@ -121,7 +121,7 @@ app.get('/secured/firstNoDeps', (req, res) => {
 });
 
 app.get('/exportdb', (req, res) => {
-  if (req.session.user.sub) {
+  if (req.session && req.session.user && req.session.user.sub) {
     db.myhash(req.session.user.sub)
         .then(hash => res.status(200).download(
                   __dirname + '/deps.db',
