@@ -186,6 +186,7 @@ function getTarget(target) {
 
 module.exports = {
   db,
+  myhash,
   record,
   depsFor,
   firstNoDeps,

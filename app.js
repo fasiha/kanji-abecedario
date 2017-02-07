@@ -8,7 +8,7 @@ var session = require('express-session');
 var LevelStore = require('level-session-store')(session);
 var cors = require('cors');
 var http = require('http');
-var compression = require('compression')
+var compression = require('compression');
 var assert = require('assert');
 require('dotenv').config();
 assert(process.env.AUTH0_CLIENT_SECRET && process.env.AUTH0_CLIENT_ID &&
@@ -118,6 +118,17 @@ app.get('/secured/firstNoDeps', (req, res) => {
                           ? res.status(404).send('no rows found')
                           : res.json(result))
       .catch(makeError(res, 'secured/firstNoDeps'));
+});
+
+app.get('/exportdb', (req, res) => {
+  if (req.session.user.sub) {
+    db.myhash(req.session.user.sub)
+        .then(hash => res.status(200).download(
+                  __dirname + '/deps.db',
+                  `KanjiBreak-${hash.replace(/[:+/=]/g, '_')}.sqlite3`));
+    return;
+  }
+  res.status(200).download(__dirname + '/deps.db', 'KanjiBreak.sqlite3');
 });
 
 app.get('/secured/userDeps/:target', (req, res) => {
