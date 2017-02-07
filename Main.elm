@@ -635,10 +635,10 @@ bulma model =
                         ]
                     , div [ class "column" ]
                         [ Html.article [ class "notification is-success" ]
-                            [ Html.h2 [ class "subtitle" ] [ text "Enter kanji for breakdown:" ]
+                            [ Html.h2 [ class "subtitle" ] [ text "Type kanji to add to breakdown:" ]
                             , div [ class "contents" ] <| renderKanjiAsker <| String.join "" <| Set.toList model.selectedKanjis
                             ]
-                        , Html.h2 [ class "subtitle" ] [ text "Select primitives for breakdown:" ]
+                        , Html.h2 [ class "subtitle" ] [ text "Select primitives to add to breakdown:" ]
                         , div [ class "contents" ] <| renderPrimitives model.selected model.primitives
                         ]
                     ]
