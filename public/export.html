@@ -6,6 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <link rel="stylesheet" type="text/css" href="main.css">
 <link rel="stylesheet" type="text/css" href="bulma.css">
+<script src="sql.js"></script>
+<script src="FileSaver.min.js"></script>
+<script src="sql2csv.js"></script>
 </head>
 
 <section class="hero is-primary is-bold">
@@ -45,6 +48,7 @@
     <div class="content">
       <p>
         <a href="exportdb" class="button is-large is-primary">Click to download all breakdowns</a>
+        <a onclick="sql2csv()" class="button is-large is-primary">Click to download CSV</a>
       </p>
       <p>
         Download the entire KanjiBreak database as a single SQLite3 database file! KanjiBreak and its contributors release this database under the <a href="https://creativecommons.org/choose/zero/">Creative Commons “No Rights Reserved” CC0 license</a>.
