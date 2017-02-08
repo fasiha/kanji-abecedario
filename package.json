@@ -12,6 +12,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "repository" :
+  { "type" : "git"
+  , "url" : "https://github.com/fasiha/kanji-abecedario"
+},
   "dependencies": {
     "bluebird": "^3.4.7",
     "body-parser": "^1.15.2",

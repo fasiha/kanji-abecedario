@@ -94,7 +94,7 @@ var makeError = (res, errname) => (err => {
 
 app.post('/api/secured/record/:target', (req, res) => {
   db.record(req.params.target, req.session.user.sub, req.body)
-      .then(_ => res.redirect(`/getTarget/${req.params.target}`))
+      .then(_ => res.redirect(`/api/getTarget/${req.params.target}`))
       .catch(makeError(res, 'record'));
 });
 
