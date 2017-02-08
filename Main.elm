@@ -446,7 +446,7 @@ provideJwt token =
             { method = "GET"
             , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
             , url =
-                "http://localhost:3000/login"
+                "/login"
             , body =
                 Http.emptyBody
             , expect = Http.expectString
@@ -458,12 +458,12 @@ provideJwt token =
 
 getPing : Cmd Msg
 getPing =
-    Http.send PingResponse (Http.getString "http://localhost:3000/secured/ping")
+    Http.send PingResponse (Http.getString "/secured/ping")
 
 
 logoutCmd : Cmd Msg
 logoutCmd =
-    Http.send LoggedOut (Http.getString "http://localhost:3000/logout")
+    Http.send LoggedOut (Http.getString "/logout")
 
 
 delayClearErr : Cmd Msg
@@ -481,7 +481,7 @@ askForUserDeps target =
             { method = "GET"
             , headers = []
             , url =
-                "http://localhost:3000/secured/userDeps/" ++ target
+                "/secured/userDeps/" ++ target
             , body =
                 Http.emptyBody
             , expect = Http.expectJson userDepsDecoder
@@ -498,7 +498,7 @@ record target deps =
             { method = "POST"
             , headers = []
             , url =
-                "http://localhost:3000/secured/record/" ++ target
+                "/secured/record/" ++ target
             , body =
                 Http.jsonBody (Encode.list (List.map Encode.string deps))
             , expect = Http.expectJson targetDecoder
@@ -511,7 +511,7 @@ record target deps =
 getPrimitives : Cmd Msg
 getPrimitives =
     Http.send GotPrimitives
-        (Http.get "http://localhost:3000/data/paths.json"
+        (Http.get "/data/paths.json"
             (Decode.list primitiveDecoder)
         )
 
@@ -519,12 +519,12 @@ getPrimitives =
 getKanjiOnly : Cmd Msg
 getKanjiOnly =
     Http.send GotKanjiOnly
-        (Http.get "http://localhost:3000/data/jouyou_jinmeiyou.json" Decode.string)
+        (Http.get "/data/jouyou_jinmeiyou.json" Decode.string)
 
 
 askFirstNoDeps : Cmd Msg
 askFirstNoDeps =
-    Http.send GotTarget (Http.get "http://localhost:3000/firstNoDeps" targetDecoder)
+    Http.send GotTarget (Http.get "/firstNoDeps" targetDecoder)
 
 
 askFirstNoDepsUser : Cmd Msg
@@ -534,7 +534,7 @@ askFirstNoDepsUser =
             { method = "GET"
             , headers = []
             , url =
-                "http://localhost:3000/secured/firstNoDeps"
+                "/secured/firstNoDeps"
             , body =
                 Http.emptyBody
             , expect = Http.expectJson targetDecoder
@@ -547,12 +547,12 @@ askFirstNoDepsUser =
 getPos : Int -> Cmd Msg
 getPos pos =
     Http.send GotTarget
-        (Http.get ("http://localhost:3000/getPos/" ++ (toString pos)) targetDecoder)
+        (Http.get ("/getPos/" ++ (toString pos)) targetDecoder)
 
 
 getTarget : String -> Cmd Msg
 getTarget target =
-    Http.send GotTarget (Http.get ("http://localhost:3000/getTarget/" ++ target) targetDecoder)
+    Http.send GotTarget (Http.get ("/getTarget/" ++ target) targetDecoder)
 
 
 
