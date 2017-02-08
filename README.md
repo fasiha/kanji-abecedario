@@ -1,6 +1,7 @@
 # Todo
 
 - [ ] Twitter and GitHub links.
+- [ ] Show a texty representation of primitive at the top, e.g., for wiktionary.
 - [x] If a not-logged-in user adds a primitive and clicks submit, after login, their breakdown isn't preserved. (As implemented now, just ask to login when first selection made if not logged in.)
 - [ ] Easy lookup of primitives by existing decompositions
 - [ ] Event sourcing: store events with Dat and rebuild the state at each Node startup.
