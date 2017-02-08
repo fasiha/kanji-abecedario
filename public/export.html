@@ -6,9 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <link rel="stylesheet" type="text/css" href="main.css">
 <link rel="stylesheet" type="text/css" href="bulma.css">
-<script src="sql.js"></script>
-<script src="FileSaver.min.js"></script>
-<script src="sql2csv.js"></script>
 </head>
 
 <section class="hero is-primary is-bold">
@@ -47,33 +44,61 @@
 
     <div class="content">
       <p>
-        <a href="exportdb" class="button is-large is-primary">Click to download all breakdowns</a>
-        <a onclick="sql2csv()" class="button is-large is-primary">Click to download CSV</a>
+        KanjiBreak and its contributors release this database under the <a href="https://creativecommons.org/choose/zero/">Creative Commons “No Rights Reserved” CC0 license</a>.
       </p>
       <p>
-        Download the entire KanjiBreak database as a single SQLite3 database file! KanjiBreak and its contributors release this database under the <a href="https://creativecommons.org/choose/zero/">Creative Commons “No Rights Reserved” CC0 license</a>.
+        <a href="exportdb" class="button is-large is-primary">Click to download SQLite database</a>
       </p>
       <p>
-        This database file can readily be consumed by nearly all programming environments and is easily converted to spreadsheet formats like CSV.
+        Download the entire KanjiBreak database as a single SQLite3 database file! This database file can readily be consumed by nearly all programming environments.
+      </p>
+      <p>
+        <a href="exportCSV.html" class="button is-large is-primary">Click to download CSV</a>
+      </p>
+      <p>
+        Download the database as a CSV (comma-separated value) file! This file is readily imported into spreadsheet programs.
+      </p>
+      <p>
+        The SVG drawings used to denote the primitives are not included in the SQLite3 database. Those are derived from KanjiVG and are made available under the <a href="https://creativecommons.org/licenses/by-sa/3.0/">Creative Commons BY-SA</a> license (same as KanjiVG) as <a href="https://raw.githubusercontent.com/fasiha/kanji-abecedario/gh-pages/data/svgs.json">a JSON database</a>.
       </p>
     </div>
 
     <h1 class="title" id="details">Technical details</h1>
     <div class="content">
       <p>
-        The database contains two tables: <code>targets</code> and <code>deps</code> (short for “dependencies”—that is, breakdowns).
+        Both SQLite database and CSV spreadsheet contain the same three sets of data. In the CSV file, each set is separated by two empty rows.
       </p>
       <p>
-        The <code>targets</code> table contains three columns: (1) a string containing the kanji or primitive, (2) a boolean whether this row is a primitive, and (3) a boolean whether this row is a jōyō or jinmeiyō kanji.
+        First, if you are logged in, the filename will be <code>KanjiBreak-hash1_[ALPHANUMERIC STRING]</code>. The alphanumeric string is the cryptographically-secure representation of your username, so you can identify which breakdowns you contributed. If you downloaded the CSV spreadsheet, the first row will contain this username representation. If you downloaded the SQLite database, this information is unfortunately only available in the filename.
       </p>
       <p>
-        The <code>deps</code> table also contains three columns: (i) a string denoting the kanji or primitive being decomposed (matches (1) above), (ii) a string identifying a user, cryptographically-hashed to protect their privacy, and (iii) a string denoting the dependency itself. Since a user is only allowed to have a single breakdown per character, look for multiple rows with the same values in columns (i)–(ii) to yield a given user’s complete breakdown.
+        Second, the list of 3,158 kanji and primitives. In the SQLite database, this is in the <code>targets</code> table. Each row represents a character capable of being broken down, or being in another character’s breakdown. (Caveat: a character can be in its own breakdown.) There are three columns in this data subset:
+        <ol>
+          <li>
+            a <code>target</code> column containing the kanji or primitive,
+          </li>
+          <li>
+            a <code>primitive</code> column indicating whether the kanji is a primitive, and
+          </li>
+          <li>
+            a <code>kanji</code> column indicating whether this kanji is a jōyō or jinmeiyō kanji.
+          </li>
+        </ol>
       </p>
       <p>
-        If you were logged in when you download the file, it will be called <code>KanjiBreak-[ALPHANUMERIC STRING].sqlite3</code>. That alphanumeric string is the string identifying your user ((ii) above). This string is in <a href="https://en.wikipedia.org/wiki/Base64">Base64</a>-encoding, except with special characters (like slash <code>/</code> or plus <code>+</code>) replaced with underscore <code>_</code>. This enables you to identify your particular breakdowns.
-      </p>
-      <p>
-        The SVG drawings used to denote the primitives are not included in the SQLite3 database. Those are derived from KanjiVG and are made available under the <a href="https://creativecommons.org/licenses/by-sa/3.0/">Creative Commons BY-SA</a> license (same as KanjiVG) as <a href="https://raw.githubusercontent.com/fasiha/kanji-abecedario/gh-pages/data/svgs.json">a JSON database</a>.
+        And third, what you really care about: the breakdowns. In the SQLite database, these are in the <code>deps</code> table. Each row has three columns:
+        <ol>
+          <li>
+             a <code>target</code> column indicating which kanji or primitive is being decomposed,
+          </li>
+          <li>
+            a <code>user</code> column containing the cryptographic representation of the username that contributed this breakdown, and
+          </li>
+          <li>
+            a <code>dependency</code> column <em>one</em> character in this user’s breakdown for this character. All values for <code>target</code> and <code>dependency</code> will be entries in the previous dataset (in the <code>targets</code> table in SQLite).
+          </li>
+        </ol>
+        A user is only allowed to have a single breakdown per character, but since each breakdown can contain multiple characters, look for multiple rows with the same <code>target</code> and <code>user</code> values—these denote that user’s entire breakdown for the given character.
       </p>
     </div>
 
