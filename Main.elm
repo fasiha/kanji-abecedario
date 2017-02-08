@@ -446,7 +446,7 @@ provideJwt token =
             { method = "GET"
             , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
             , url =
-                "/login"
+                "/api/login"
             , body =
                 Http.emptyBody
             , expect = Http.expectString
@@ -458,18 +458,18 @@ provideJwt token =
 
 getPing : Cmd Msg
 getPing =
-    Http.send PingResponse (Http.getString "/secured/ping")
+    Http.send PingResponse (Http.getString "/api/secured/ping")
 
 
 logoutCmd : Cmd Msg
 logoutCmd =
-    Http.send LoggedOut (Http.getString "/logout")
+    Http.send LoggedOut (Http.getString "/api/logout")
 
 
 delayClearErr : Cmd Msg
 delayClearErr =
     Task.perform identity
-        (Process.sleep (2 * Time.second)
+        (Process.sleep (5 * Time.second)
             |> Task.andThen (\() -> Task.succeed ClearErr)
         )
 
@@ -481,7 +481,7 @@ askForUserDeps target =
             { method = "GET"
             , headers = []
             , url =
-                "/secured/userDeps/" ++ target
+                "/api/secured/userDeps/" ++ target
             , body =
                 Http.emptyBody
             , expect = Http.expectJson userDepsDecoder
@@ -498,7 +498,7 @@ record target deps =
             { method = "POST"
             , headers = []
             , url =
-                "/secured/record/" ++ target
+                "/api/secured/record/" ++ target
             , body =
                 Http.jsonBody (Encode.list (List.map Encode.string deps))
             , expect = Http.expectJson targetDecoder
@@ -524,7 +524,7 @@ getKanjiOnly =
 
 askFirstNoDeps : Cmd Msg
 askFirstNoDeps =
-    Http.send GotTarget (Http.get "/firstNoDeps" targetDecoder)
+    Http.send GotTarget (Http.get "/api/firstNoDeps" targetDecoder)
 
 
 askFirstNoDepsUser : Cmd Msg
@@ -534,7 +534,7 @@ askFirstNoDepsUser =
             { method = "GET"
             , headers = []
             , url =
-                "/secured/firstNoDeps"
+                "/api/secured/firstNoDeps"
             , body =
                 Http.emptyBody
             , expect = Http.expectJson targetDecoder
@@ -547,12 +547,12 @@ askFirstNoDepsUser =
 getPos : Int -> Cmd Msg
 getPos pos =
     Http.send GotTarget
-        (Http.get ("/getPos/" ++ (toString pos)) targetDecoder)
+        (Http.get ("/api/getPos/" ++ (toString pos)) targetDecoder)
 
 
 getTarget : String -> Cmd Msg
 getTarget target =
-    Http.send GotTarget (Http.get ("/getTarget/" ++ target) targetDecoder)
+    Http.send GotTarget (Http.get ("/api/getTarget/" ++ target) targetDecoder)
 
 
 

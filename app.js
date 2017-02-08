@@ -50,8 +50,8 @@ app.use(session({
 
 app.use(express.static('public'));
 app.use('/data', express.static('data'))
-app.use('/login', jwtAuthenticate);
-app.use('/secured', sessionAuthenticate);
+app.use('/api/login', jwtAuthenticate);
+app.use('/api/secured', sessionAuthenticate);
 
 app.use((err, req, res, next) => {
   if (err.name === 'UnauthorizedError') {
@@ -59,12 +59,12 @@ app.use((err, req, res, next) => {
   }
 });
 
-app.get('/login', (req, res) => {
+app.get('/api/login', (req, res) => {
   req.session.user = {sub : req.user.sub};
   res.send("OK");
 });
 
-app.get('/logout', (req, res) => {
+app.get('/api/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
       console.error('ERROR destroying session', err);
@@ -73,11 +73,11 @@ app.get('/logout', (req, res) => {
   });
 });
 
-app.get('/ping', (req, res) => {
+app.get('/api/ping', (req, res) => {
   res.send("All good. You don't need to be authenticated to call this");
 });
 
-app.get('/secured/ping', (req, res) => {
+app.get('/api/secured/ping', (req, res) => {
   res.status(200).send(
       "All good. You only get this message if you're authenticated");
 });
@@ -92,19 +92,19 @@ var makeError = (res, errname) => (err => {
   }
 });
 
-app.post('/secured/record/:target', (req, res) => {
+app.post('/api/secured/record/:target', (req, res) => {
   db.record(req.params.target, req.session.user.sub, req.body)
       .then(_ => res.redirect(`/getTarget/${req.params.target}`))
       .catch(makeError(res, 'record'));
 });
 
-app.get('/depsFor/:target', (req, res) => {
+app.get('/api/depsFor/:target', (req, res) => {
   db.depsFor(req.params.target)
       .then(result => res.json(result))
       .catch(makeError(res, 'depsFor'));
 });
 
-app.get('/firstNoDeps', (req, res) => {
+app.get('/api/firstNoDeps', (req, res) => {
   db.firstNoDeps()
       .then(result => result.length === 0
                           ? res.status(404).send('no rows found')
@@ -112,7 +112,7 @@ app.get('/firstNoDeps', (req, res) => {
       .catch(makeError(res, 'firstNoDeps'));
 });
 
-app.get('/secured/firstNoDeps', (req, res) => {
+app.get('/api/secured/firstNoDeps', (req, res) => {
   db.firstNoDepsUser(req.session.user.sub)
       .then(result => result.length === 0
                           ? res.status(404).send('no rows found')
@@ -120,7 +120,7 @@ app.get('/secured/firstNoDeps', (req, res) => {
       .catch(makeError(res, 'secured/firstNoDeps'));
 });
 
-app.get('/exportdb', (req, res) => {
+app.get('/api/exportdb', (req, res) => {
   if (req.session && req.session.user && req.session.user.sub) {
     db.myhash(req.session.user.sub)
         .then(hash => res.status(200).download(
@@ -131,7 +131,7 @@ app.get('/exportdb', (req, res) => {
   res.status(200).download(__dirname + '/deps.db', 'KanjiBreak.sqlite3');
 });
 
-app.get('/secured/userDeps/:target', (req, res) => {
+app.get('/api/secured/userDeps/:target', (req, res) => {
   db.userDeps(req.params.target, req.session.user.sub)
       .then(result => result.length === 0
                           ? res.status(404).send('no rows found')
@@ -139,13 +139,13 @@ app.get('/secured/userDeps/:target', (req, res) => {
       .catch(makeError(res, 'userDeps'));
 });
 
-app.get('/secured/myDeps', (req, res) => {
+app.get('/api/secured/myDeps', (req, res) => {
   db.myDeps(req.session.user.sub)
       .then(result => res.json(result))
       .catch(makeError(res, 'myDeps'));
 });
 
-app.get('/getPos/:pos', (req, res) => {
+app.get('/api/getPos/:pos', (req, res) => {
   db.getPos(+req.params.pos)
       .then(result => result.length === 0
                           ? res.status(404).send('no rows found')
@@ -153,7 +153,7 @@ app.get('/getPos/:pos', (req, res) => {
       .catch(makeError(res, 'getPos'));
 });
 
-app.get('/getTarget/:target', (req, res) => {
+app.get('/api/getTarget/:target', (req, res) => {
   db.getTarget(req.params.target)
       .then(result => result.length === 0
                           ? res.status(404).send('no rows found')
@@ -161,7 +161,7 @@ app.get('/getTarget/:target', (req, res) => {
       .catch(makeError(res, 'getTarget'));
 });
 
-app.get('/kanjiOnly', (req, res) => { res.json(db.kanjiOnly); });
+app.get('/api/kanjiOnly', (req, res) => { res.json(db.kanjiOnly); });
 
 var port = process.env.PORT || 3000;
 
