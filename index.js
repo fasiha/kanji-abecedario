@@ -127,7 +127,7 @@ heading2base.a = '一ニ人山石耳火川力刀女小少皿子母父㐅凵斤�
 columns.a = heading2base.a.map(character2svg);
 columns.a[17] = keepstrokes(character2svg('図'), range1(5, 6));
 
-heading2base.b = '口,言,占,加,召,豆,兄,兑,𠂤,㠯,呂,中,虫,noble,串'.split(',');
+heading2base.b = '口,言,占,加,召,豆,兄,兑,marshall,㠯,呂,中,虫,noble,串'.split(',');
 columns.b = heading2base.b.map(character2svg);
 columns.b[7] = charRangeToSVG('悦', '4-10');
 columns.b[8] = charRangeToSVG('帥', '1-6');
@@ -139,7 +139,7 @@ heading2base.c =
 columns.c = heading2base.c.map(character2svg);
 columns.c[10] = charRangeToSVG('鳥', '1-7');
 
-heading2base.d = '田,苗,畐,魚,曽,由,𤰔,曲,曹,甲,申,里,単,果'.split(',');
+heading2base.d = '田,苗,畐,魚,曽,由,bless,曲,曹,甲,申,里,単,果'.split(',');
 columns.d = heading2base.d.map(character2svg);
 columns.d[6] = charRangeToSVG('恵', '1-6');
 
@@ -161,7 +161,7 @@ headString('h', '牛,告,先,生,朱,失,矢,午,recommend,乍,竹');
 columns.h[8] = charRangeToSVG('勧', '1-11');
 
 headString('i',
-           '士,吉,土,赤,圭,孝,者,工,五,並,亜,西,龶,careful,青,責,王,主,𦍌');
+           '士,吉,土,赤,圭,孝,者,工,五,並,亜,西,龶,careful,青,責,王,主,shine');
 columns.i[13] = charRangeToSVG('勤', '1-10');
 columns.i[12] = charRangeToSVG('毒', '1-4');
 columns.i[18] = charRangeToSVG('差', '1-7');
@@ -197,10 +197,10 @@ columns.n[0] = charRangeToSVG('札', '5');
 columns.n[18] = charRangeToSVG('竜', '6-10');
 columns.n[22] = charRangeToSVG('厄', '3-4');
 
-headString('o', '止,歩,延,卸,正,𤴓,疋,足,走,是');
+headString('o', '止,歩,延,卸,正,sure,疋,足,走,是');
 columns.o[5] = charRangeToSVG('定', '4-8')
 
-headString('p', '水,永,求,park,𧘇,㐮,衣,mourning,長,辰,氏,氐,民,以,detain,卬')
+headString('p', '水,永,求,park,pathos,㐮,衣,mourning,長,辰,氏,氐,民,以,detain,卬')
 columns.p[3] = charRangeToSVG('園', '9-12');
 columns.p[7] = charRangeToSVG('喪', '9-12');
 columns.p[14] = charRangeToSVG('留', '1-5');
@@ -209,7 +209,7 @@ columns.p[5] = charRangeToSVG('壌', '4-16');
 columns.p[11] = charRangeToSVG('低', '3-7');
 columns.p[15] = charRangeToSVG('仰', '3-6');
 
-headString('q', '厶,台,能,広,云,至,去,𠫓,育,充,鬼,亥,幺,𢆶,玄,糸,系');
+headString('q', '厶,台,能,広,云,至,去,discard,育,充,鬼,亥,幺,charity,玄,糸,系');
 columns.q[7] = charRangeToSVG('棄', '1-4');
 columns.q[13] = charRangeToSVG('慈', '4-9');
 
@@ -231,9 +231,9 @@ fixer('s', '㒸', '遂', '1-9');
 fixer('s', '貇', '懇', '1-13');
 fixer('s', '夋', '唆', '4-10');
 
-headString('t', '癶,𠆢,介,余,金,舎,食,令,今,合,㑒,俞,侖,八,公,㕣,谷,tool');
+headString('t', '癶,association,介,余,金,舎,食,令,今,合,㑒,俞,侖,八,公,㕣,谷,tool');
 fixer('t', 'tool', '具', '6-8');
-fixer('t', '𠆢', '会', '1-2');
+fixer('t', 'association', '会', '1-2');
 fixer('t', '㑒', '険', '4-11');
 fixer('t', '俞', '諭', '8-16');
 fixer('t', '㕣', '鉛', '9-13');
@@ -242,19 +242,19 @@ headString('u', '尸,辟,尺,戸,扁,倉');
 
 headString(
     'v',
-    '右,有,布,exist,left,友,史,更,大,莫,犬,尞,天,关,夫,𦰩,夬,央,夹,龹,𡗗,丰');
+    '右,有,布,exist,left,友,史,更,大,莫,犬,尞,天,关,夫,lament,夬,央,夹,龹,haru,丰');
 fixer('v', 'exist', '在', '1-3');
 fixer('v', 'left', '左', '1-2');
 fixer('v', '尞', '僚', '3-14');
-fixer('v', '𦰩', '嘆', '4-13');
+fixer('v', 'lament', '嘆', '4-13');
 fixer('v', '夹', '狭', '4-9');
 fixer('v', '龹', '券', '1-6');
-fixer('v', '𡗗', '春', '1-5');
+fixer('v', 'haru', '春', '1-5');
 fixer('v', '丰', '邦', '1-4');
 
-headString('w', '弋,soldier,代,戈,𢦏,戠,我,義,戊,戌,成,㦮');
+headString('w', '弋,soldier,代,戈,judge,戠,我,義,戊,戌,成,㦮');
 fixer('w', 'soldier', '武', '1-2,7-8');
-fixer('w', '𢦏', '裁', '1-3,10-12');
+fixer('w', 'judge', '裁', '1-3,10-12');
 fixer('w', '㦮', '浅', '4-9');
 
 headString('x', '彐,翟,soak,帚,录,肀,隶,聿,兼,君,争');
@@ -270,15 +270,15 @@ fixer('y', '丂', '号', '4-5')
 
 headString(
     'z',
-    '𠃊,seal,非,不,not,片,queen,乃,及,𠃌,之,為,入,屰,敢,身,beautiful,return,敝,鬲,世,anxious');
+    'frank,seal,非,不,not,片,queen,乃,及,bureau,之,為,入,屰,敢,身,beautiful,return,敝,鬲,世,anxious');
 fixer('z', 'seal', '印', '1-4');
 fixer('z', 'not', '無', '1-8');
 fixer('z', 'queen', '盾', '1-2');
 fixer('z', 'beautiful', '薦', '4-10');
 fixer('z', 'return', '帰', '1-2');
 fixer('z', 'anxious', '憂', '1-8');
-fixer('z', '𠃊', '直', '8');
-fixer('z', '𠃌', '司', '1');
+fixer('z', 'frank', '直', '8');
+fixer('z', 'bureau', '司', '1');
 fixer('z', '屰', '逆', '1-6');
 
 function fmap(f, ...args) {

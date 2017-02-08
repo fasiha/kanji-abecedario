@@ -24,7 +24,7 @@ function selection2csv(obj) {
  */
 function sql2csv() {
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', '/exportdb', true);
+  xhr.open('GET', '/api/exportdb', true);
   xhr.responseType = 'arraybuffer';
 
   xhr.onload = function(e) {

@@ -719,7 +719,13 @@ renderTarget maybetarget primitives =
                     ++ "! "
                 )
             , Dict.get target.target primitives
-                |> Maybe.map (svgPrimitive "heading-svg")
+                |> Maybe.map
+                    (\s ->
+                        Html.span []
+                            [ svgPrimitive "heading-svg" s
+                            , Html.small [] [ text <| " (" ++ s.target ++ ")" ]
+                            ]
+                    )
                 |> withDefault (text target.target)
             ]
 

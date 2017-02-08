@@ -29,3 +29,5 @@ Consider?
 
 - [ ] Make `#target/` the default instead of `#pos/`, i.e., link target pointer to the string. Downside: extra-BMP characters or English keywords.
 - [ ] Recenter and rescale SVGs (look at [flatten.js](https://gist.github.com/timo22345/9413158) via [SO](http://stackoverflow.com/a/22254240/500207) and the following Inkscape CLI invokation: `inkscape --verb=EditSelectAll --verb=SelectionGroup --verb=AlignHorizontalCenter --verb=AlignVerticalCenter --verb=FileSave --verb=FileQuit $(pwd)/FILE.svg`, possibly with needing to pre-set the alignment relative to “Page”)
+
+Should probably keep a link to this somewhere: https://fasiha.github.io/kanji-abecedario/
