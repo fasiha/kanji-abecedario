@@ -35,8 +35,9 @@ app.use(cors());
 app.use(compression()); // Small payloads like JSON responses don't compress...
 
 // uncomment after placing your favicon in /public
-// app.use(favicon(__dirname + '/public/favicon.ico'));
-app.use(logger('dev'));
+app.use(favicon(__dirname + '/public/favicon.ico'));
+app.use(logger(
+    ':date[iso] :remote-addr :remote-user :method :url HTTP/:http-version :status :res[content-length] - :response-time ms'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : false}));
 app.use(session({
