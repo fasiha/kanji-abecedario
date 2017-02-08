@@ -341,7 +341,10 @@ update msg model =
                     else
                         Set.insert str model.selected
               }
-            , Cmd.none
+            , if model.loggedIn then
+                Cmd.none
+              else
+                login ""
             )
 
         Record ->
@@ -669,7 +672,7 @@ bulma model =
 
 bulmaLazyKanji : Dict String Int -> Html Msg
 bulmaLazyKanji kanjiOnly =
-    div [ class "contents" ] <| renderKanjis kanjiOnly
+    div [ class "contents kanji-container" ] <| renderKanjis kanjiOnly
 
 
 bulmaLazyPrimitives : Dict String Primitive -> Html Msg

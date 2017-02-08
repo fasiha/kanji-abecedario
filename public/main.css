@@ -146,11 +146,5 @@ svg.primitive-selected {
 }
 
 .kanji-container a {
-  color: inherit;
-  text-decoration: none;
-  font-size: xx-large;
-}
-.kanji-container a:hover {
-  color: #DB4105;
-  text-decoration: underline;
+  font-size: large;
 }

@@ -1,12 +1,12 @@
 # Todo
 
-- [ ] If a not-logged-in user adds a primitive and clicks submit, after login, their breakdown isn't preserved.
-- [ ] About + Export (static HTML, outside Elm)
+- [x] If a not-logged-in user adds a primitive and clicks submit, after login, their breakdown isn't preserved. (As implemented now, just ask to login when first selection made if not logged in.)
 - [ ] Easy lookup of primitives by existing decompositions
 - [ ] Event sourcing: store events with Dat and rebuild the state at each Node startup.
 
 Done
 
+- [x] About + Export (static HTML, outside Elm)
 - [x] CSS-ify primitives/kanji list and error flash
 - [x] Add numbers to hover over primitives
 - [x] JWT->session?
