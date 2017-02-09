@@ -53,6 +53,7 @@ type alias Model =
     , selected : Set String
     , selectedKanjis : Set String
     , kanjiOnly : Dict String Int
+    , inputText : String
     }
 
 
@@ -65,6 +66,7 @@ init initialLocation =
         Set.empty
         Set.empty
         Dict.empty
+        ""
     , Cmd.batch
         [ (case Url.parseHash route initialLocation of
             Just (RoutePos pos) ->
@@ -234,7 +236,7 @@ update msg model =
                 url =
                     routeToFragment (RoutePos target.pos)
             in
-                ( { model | target = Just target, selected = Set.empty, selectedKanjis = Set.empty }
+                ( { model | target = Just target, selected = Set.empty, selectedKanjis = Set.empty, inputText = "" }
                 , if List.isEmpty target.deps then
                     Navigation.newUrl url
                   else
@@ -293,6 +295,7 @@ update msg model =
                                 |> Maybe.map (\target -> { target | userDeps = Just deps.deps })
                         , selectedKanjis = Set.fromList kanjis
                         , selected = Set.fromList primitives
+                        , inputText = String.join "" kanjis
                     }
               else
                 model
@@ -302,7 +305,7 @@ update msg model =
         GotUserDeps (Err err) ->
             let
                 newmodel =
-                    { model | selectedKanjis = Set.empty, selected = Set.empty }
+                    { model | selectedKanjis = Set.empty, selected = Set.empty, inputText = "" }
             in
                 case err of
                     Http.BadStatus res ->
@@ -375,11 +378,18 @@ update msg model =
 
         Input text ->
             ( { model
-                | selectedKanjis =
+                | inputText = text
+                , selectedKanjis =
                     text
                         |> String.split ""
                         |> List.filter ((flip Dict.member) model.kanjiOnly)
                         |> Set.fromList
+                , selected =
+                    text
+                        |> String.split ""
+                        |> List.filter ((flip Dict.member) model.primitives)
+                        |> Set.fromList
+                        |> Set.union model.selected
               }
             , Cmd.none
             )
@@ -639,7 +649,7 @@ bulma model =
                     , div [ class "column" ]
                         [ Html.article [ class "notification is-success" ]
                             [ Html.h2 [ class "subtitle" ] [ text "Type kanji to add to breakdown:" ]
-                            , div [ class "contents" ] <| renderKanjiAsker <| String.join "" <| Set.toList model.selectedKanjis
+                            , div [ class "contents" ] <| renderKanjiAsker model.inputText
                             ]
                         , Html.h2 [ class "subtitle" ] [ text "Select primitives to add to breakdown:" ]
                         , div [ class "contents" ] <| renderPrimitives model.selected model.primitives
@@ -688,8 +698,8 @@ renderKanjiJump =
 
 
 renderKanjiAsker : String -> List (Html Msg)
-renderKanjiAsker depsKanjiString =
-    [ Html.input [ HA.value depsKanjiString, HA.placeholder "Enter kanji here", onInput Input ] [] ]
+renderKanjiAsker input =
+    [ Html.input [ HA.value input, HA.placeholder "Enter kanji here", onInput Input ] [] ]
 
 
 svgKanji : String -> Html msg
