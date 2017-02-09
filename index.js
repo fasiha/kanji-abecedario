@@ -111,7 +111,7 @@ columns.ri = '彡刂⻏卩攵頁隹月'.split('').map(character2svg);
 columns.to = [
   [ '首', range1(1, 3) ], [ '肖', range1(1, 3) ], [ '甬', range1(1, 2) ],
   [ '急', range1(1, 2) ], [ '安', range1(1, 3) ], [ '草', range1(1, 3) ],
-  [ '筒', range1(1, 6) ], [ '夢', range1(4, 8) ], [ '学', range1(1, 5) ],
+  [ '筒', range1(1, 6) ], [ '夢', range1(4, 8) ], [ '学', range1(1, 3) ],
   [ '妥', range1(1, 4) ], [ '海', range1(4, 5) ], [ '雨', range1(1, 8) ]
 ].map(([ char, r ]) => keepstrokes(character2svg(char), r));
 
