@@ -81,84 +81,87 @@ function cleanDeps(depsArray) {
       .sort();
 }
 
+var recordStatement = db.prepare(`INSERT INTO deps VALUES (?, ?, ?)`);
+var recordDeleteStatement =
+    db.prepare(`DELETE FROM deps WHERE target = ? AND user = ?`);
 function record(target, user, depsArray) {
   return myhash(user).then(hash => {
-    var statement = db.prepare(`INSERT INTO deps VALUES (?, ?, ?)`);
-    return db
-        .runAsync(`DELETE FROM deps WHERE target = ? AND user = ?`,
-                  [ target, hash ])
-        .then(_ => Promise.all(cleanDeps(depsArray).map(
-                  d => statement.runAsync([ target, hash, d ]))));
+    var depsToSubmit = cleanDeps(depsArray);
+    return recordDeleteStatement.runAsync([ target, hash ])
+        .then(_ => Promise.all(depsToSubmit.map(
+                  d => recordStatement.runAsync([ target, hash, d ]))));
   });
 }
 
 // Note, the following makes no guarantees about sort order of each dependency
 // group, unlike other dependency functions here, since this is purely for
 // user-export.
+var myDepsStatement = db.prepare(`
+  SELECT target,
+         group_concat(dependency) AS deps
+  FROM   deps
+  WHERE  deps.USER = ?
+  GROUP  BY target`);
 function myDeps(user) {
-  return myhash(user).then(hash => db.allAsync(`SELECT target,
-                                  group_concat(dependency) AS deps
-                           FROM   deps
-                           WHERE  deps.USER = ?
-                           GROUP  BY target`,
-                                               [ hash ]));
+  return myhash(user).then(hash => myDepsStatement.allAsync([ hash ]));
 }
 
-function depsFor(target) {
-  return db.allAsync(`SELECT sortedDeps,
-                             count(sortedDeps) AS cnt
-                      FROM   (SELECT group_concat(d) AS sortedDeps
-                              FROM   (SELECT ALL deps.dependency AS d,
-                                                 deps.user       AS u
-                                      FROM   deps
-                                      WHERE  deps.target = ?
-                                      GROUP  BY deps.user,
-                                                deps.dependency)
-                              GROUP  BY u)
-                      GROUP  BY sortedDeps
-                      ORDER  BY cnt DESC;`,
-                     [ target ]);
-}
+var depsForStatement = db.prepare(`
+  SELECT sortedDeps,
+         count(sortedDeps) AS cnt
+  FROM   (SELECT group_concat(d) AS sortedDeps
+          FROM   (SELECT ALL deps.dependency AS d,
+                             deps.user       AS u
+                  FROM   deps
+                  WHERE  deps.target = ?
+                  GROUP  BY deps.user,
+                            deps.dependency)
+          GROUP  BY u)
+  GROUP  BY sortedDeps
+                      ORDER  BY cnt DESC`);
+function depsFor(target) { return depsForStatement.allAsync([ target ]); }
 
+var userDepsStatement = db.prepare(`
+  SELECT group_concat(deps.dependency) AS deps, target
+  FROM deps
+  WHERE deps.target = ? AND deps.user = ?
+  ORDER BY deps.dependency`);
 function userDeps(target, user, cb) {
   return myhash(user)
-      .then(hash => db.allAsync(
-                `SELECT group_concat(deps.dependency) AS deps, target
-                 FROM deps
-                 WHERE deps.target = ? AND deps.user = ?
-                 ORDER BY deps.dependency`, // same sort order as depsFor
-                [ target, hash ]))
+      .then(hash => userDepsStatement.allAsync([ target, hash ]))
       .then(result => result[0].deps ? result[0] : []);
+  // same sort order as depsFor
 }
 
+var firstNoDepsStatement = db.prepare(`
+  SELECT target, rowid
+  FROM targets
+  WHERE target NOT IN (SELECT DISTINCT target
+                       FROM deps)
+  ORDER BY rowid
+  LIMIT 1`);
 function firstNoDeps() {
-  return db
-      .allAsync(`SELECT target, rowid
-                 FROM targets
-                 WHERE target NOT IN (SELECT DISTINCT target
-                                      FROM deps)
-                 ORDER BY rowid
-                 LIMIT 1`)
-      .then(x => {
-        if (x.length > 0) {
-          var o = x[0];
-          o.deps = [];
-          return o;
-        }
-        return [];
-      });
+  return firstNoDepsStatement.allAsync().then(x => {
+    if (x.length > 0) {
+      var o = x[0];
+      o.deps = [];
+      return o;
+    }
+    return [];
+  });
 }
 
+var firstNoDepsUserStatement = db.prepare(`
+  SELECT target, rowid
+  FROM targets
+  WHERE target NOT IN (SELECT DISTINCT target
+                      FROM deps
+                      WHERE deps.user = ?)
+  ORDER BY rowid
+  LIMIT 1`);
 function firstNoDepsUser(user) {
   return addDepsToTargetRowidPromise(
-      myhash(user).then(hash => db.allAsync(`SELECT target, rowid
-                 FROM targets
-                 WHERE target NOT IN (SELECT DISTINCT target
-                                      FROM deps
-                                      WHERE deps.user = ?)
-                 ORDER BY rowid
-                 LIMIT 1`,
-                                            [ hash ])));
+      myhash(user).then(hash => firstNoDepsUserStatement.allAsync([ hash ])));
 }
 
 function addDepsToTargetRowidPromise(promise) {
@@ -174,14 +177,16 @@ function addDepsToTargetRowidPromise(promise) {
                 success ? {target, rowid, deps} : []);
 }
 
+var getPosStatement =
+    db.prepare('SELECT target, rowid FROM targets WHERE rowid = ?');
 function getPos(position) {
-  return addDepsToTargetRowidPromise(db.allAsync(
-      'SELECT target, rowid FROM targets WHERE rowid = ?', position));
+  return addDepsToTargetRowidPromise(getPosStatement.allAsync(position));
 }
 
+var getTargetStatement =
+    db.prepare('SELECT target, rowid FROM targets WHERE target = ?');
 function getTarget(target) {
-  return addDepsToTargetRowidPromise(db.allAsync(
-      'SELECT target, rowid FROM targets WHERE target = ?', target));
+  return addDepsToTargetRowidPromise(getTargetStatement.allAsync(target));
 }
 
 module.exports = {
