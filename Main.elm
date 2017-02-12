@@ -236,15 +236,17 @@ update msg model =
                 url =
                     routeToFragment (RoutePos target.pos)
             in
-                ( { model | target = Just target, selected = Set.empty, selectedKanjis = Set.empty, inputText = "" }
-                , if List.isEmpty target.deps then
-                    Navigation.newUrl url
-                  else
-                    Cmd.batch
+                if List.isEmpty target.deps then
+                    ( { model | target = Just target, selected = Set.empty, selectedKanjis = Set.empty, inputText = "" }
+                    , Navigation.newUrl url
+                    )
+                else
+                    ( { model | target = Just target }
+                    , Cmd.batch
                         [ Navigation.newUrl url
                         , askForUserDeps target.target
                         ]
-                )
+                    )
 
         GotTarget (Err err) ->
             case err of
@@ -356,7 +358,7 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just target ->
-                    ( { model | selected = Set.empty, selectedKanjis = Set.empty }
+                    ( model
                     , record
                         target.target
                         (Set.toList <| Set.union model.selected model.selectedKanjis)
