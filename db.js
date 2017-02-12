@@ -5,6 +5,10 @@ var assert = require('assert');
 var sqlite3 = Promise.promisifyAll(require('sqlite3')).verbose();
 var crypto = Promise.promisifyAll(require('crypto'));
 require('dotenv').config();
+var path = require('path');
+var fs = Promise.promisifyAll(require('fs'));
+var mkdirpp = Promise.promisifyAll(require('mkdirp')).mkdirpAsync;
+var datdb = require('./datdb');
 
 var iterations = 1000;
 var keylen = 18; // bytes
@@ -87,6 +91,15 @@ var recordDeleteStatement =
 function record(target, user, depsArray) {
   return myhash(user).then(hash => {
     var depsToSubmit = cleanDeps(depsArray);
+
+    // Write to file system: will be picked up by Dat: p2p ftw!
+    var thispath = path.join(datdb.path, target, hash);
+    mkdirpp(thispath)
+        .then(made => fs.writeFileAsync(path.join(thispath, 'data.json'),
+                                        JSON.stringify(depsToSubmit)))
+        .catch(err => console.error("ERROR writing:", thispath, err));
+
+    // Write to database
     return recordDeleteStatement.runAsync([ target, hash ])
         .then(_ => Promise.all(depsToSubmit.map(
                   d => recordStatement.runAsync([ target, hash, d ]))));
