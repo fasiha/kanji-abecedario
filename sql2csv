@@ -1,4 +1,4 @@
-for table in targets; do
+for table in targets deps; do
     sqlite3 $1 <<EOF
 .headers on
 .mode csv
@@ -6,4 +6,3 @@ for table in targets; do
 select * from $table;
 EOF
     done
-
