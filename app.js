@@ -162,7 +162,7 @@ app.get('/api/getTarget/:target', (req, res) => {
       .catch(makeError(res, 'getTarget'));
 });
 
-app.get('/api/kanjiOnly', (req, res) => { res.json(db.kanjiOnly); });
+app.get('/api/kanjiOnly', (req, res) => { res.json(db.getKanjiOnly()); });
 
 var port = process.env.PORT || 3000;
 

@@ -22,20 +22,26 @@ function myhash(string) {
 }
 
 // DATA
-var stringSetDiff = (a, b) => {
+function stringSetDiff(a, b) {
   var aset = new Set(a.split(''));
   return b.split('').filter(s => !aset.has(s)).join('');
-};
-var kanken = JSON.parse(fs.readFileSync('data/kanken.json', 'utf8'));
-var allKanji = Object.keys(kanken)
-                   .sort((a, b) => (+b) - (+a)) // descending (10 first, 9, ...)
-                   .map(k => kanken[k])
-                   .reduce((prev, curr) => prev + curr);
-// allKanji contains a giant string containing jouyou and jinmeiyou kanji.
-// It might contain some primitives, which we load next:
-var paths = JSON.parse(fs.readFileSync('data/paths.json', 'utf8'));
+}
+var kanjiOnly = 'uninit';
+// This figures out whether targets are primitives and/or kanji
+function makeTargets() {
+  var kanken = JSON.parse(fs.readFileSync('data/kanken.json', 'utf8'));
+  var allKanji =
+      Object.keys(kanken)
+          .sort((a, b) => (+b) - (+a)) // descending (10 first, 9, ...)
+          .map(k => kanken[k])
+          .reduce((prev, curr) => prev + curr);
+  // allKanji contains a giant string containing jouyou and jinmeiyou kanji.
+  // It might contain some primitives, which we load next:
+  var paths = JSON.parse(fs.readFileSync('data/paths.json', 'utf8'));
 
-function makeTargets(paths, allKanji) {
+  // Global mutability
+  kanjiOnly = allKanji.split('');
+
   var kanjiSet = new Set(allKanji.split(''));
   var primSet = new Set(paths.map(o => o.target));
   var seen = new Set([]);
@@ -49,10 +55,9 @@ function makeTargets(paths, allKanji) {
   return all;
 }
 
-// DB
+// DB SETUP
 
 var db = new sqlite3.Database('deps.db');
-// var db = new sqlite3.Database(':memory:');
 
 db.runAsync(`PRAGMA foreign_keys = ON`)
     .then(_ => db.runAsync(`CREATE TABLE IF NOT EXISTS targets
@@ -70,9 +75,14 @@ db.runAsync(`PRAGMA foreign_keys = ON`)
     .then(_ => db.runAsync(
               `CREATE INDEX IF NOT EXISTS targetUser ON deps (target, user)`))
     .then(_ => {
-      var allTargets = makeTargets(paths, allKanji);
+      var allTargets = makeTargets();
       var s = allTargets.map(([ s, i, j ]) => `("${s}",${i},${j})`).join(',');
-      return db.runAsync(`INSERT OR IGNORE INTO targets VALUES ${s}`)
+      return Promise.all([
+        db.runAsync(`INSERT OR IGNORE INTO targets VALUES ${s}`),
+        // Dump targets to Dat (it will update since timestamp changes)
+        fs.writeFileAsync(path.join(datdb.path, 'targets.json'),
+                          JSON.stringify(allTargets))
+      ]);
     });
 
 // SERVICES
@@ -213,6 +223,6 @@ module.exports = {
   getPos,
   getTarget,
   myDeps,
-  kanjiOnly : allKanji.split(''),
+  getKanjiOnly : () => kanjiOnly,
   cleanup : (cb) => db.close(cb),
 };

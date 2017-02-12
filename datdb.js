@@ -6,14 +6,18 @@ var path = './dat-archive';
 mkdirp.sync(path);
 
 Dat(path, {}, function(err, dat) {
-  console.log('ERR', err);
+  if (err) {
+    console.log('DAT ERR', err);
+    return;
+  }
+
   // Join the network
   var network = dat.joinNetwork({})
   network.swarm     // hyperdiscovery
   network.connected // number of connected peers
 
   key = dat.key.toString('hex'); // global
-  console.log('Dat key:', key);
+  console.log('Dat key: dat://' + key);
 
   var importer = dat.importFiles({watch : true},
                                  (err, res) => console.log('dat imported'));
