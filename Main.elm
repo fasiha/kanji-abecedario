@@ -593,7 +593,7 @@ navButtonClass =
 
 bulmaNav : Model -> Html Msg
 bulmaNav model =
-    Html.nav [ class "nav" ]
+    Html.nav [ class "nav", HA.style [ ( "padding-top", "1em" ) ] ]
         [ div [ class "container" ]
             [ div [ class "nav-left" ]
                 [ if model.loggedIn then
@@ -601,6 +601,7 @@ bulmaNav model =
                   else
                     Html.a [ class navButtonClass, onClick Login ]
                         [ text "Login" ]
+                , text " "
                 , Html.a
                     [ onClick Previous
                     , class
@@ -611,8 +612,11 @@ bulmaNav model =
                         )
                     ]
                     [ text "Previous kanji" ]
+                , text " "
                 , Html.a [ class navButtonClass, onClick Next ] [ text "Next kanji" ]
+                , text " "
                 , Html.a [ class navButtonClass, onClick AskFirstNoDeps ] [ text "First kanji without any votes" ]
+                , text " "
                 , Html.a [ class navButtonClass, onClick AskFirstNoDepsUser ] [ text "First kanji without my vote" ]
                 ]
             ]
