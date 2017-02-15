@@ -93,7 +93,7 @@ var heading2base = {};
 heading2base.le = '冫氵忄丬亻禾米⻏弓犭扌礻衤糸王木言足酉食金馬日月'.split('');
 heading2base.ri = '彡刂⻏卩攵頁隹月'.split('');
 heading2base.to =
-    '䒑⺌龴⺈宀艹⺮⺲⺍爫'.split('').concat([ 'every', '雨' ]).concat('耂');
+    '䒑⺌龴⺈宀艹⺮⺲⺍爫'.split('').concat('every,雨,耂,丆'.split(','));
 heading2base.bo = 'ハ儿心灬月'.split('');
 heading2base.en = '厂广疒⻌廴囗'.split('').concat('inch');
 heading2base.fr = '丶,fun,丨,卜,巾,土,大,丿,丷,亅,禸'.split(',');
@@ -114,14 +114,17 @@ columns.to = [
   [ '急', range1(1, 2) ], [ '安', range1(1, 3) ], [ '草', range1(1, 3) ],
   [ '筒', range1(1, 6) ], [ '夢', range1(4, 8) ], [ '学', range1(1, 3) ],
   [ '妥', range1(1, 4) ], [ '海', range1(4, 5) ], [ '雨', range1(1, 8) ],
-  [ '孝', range1(1, 4) ]
+  [ '孝', range1(1, 4) ], [ '不', range1(1, 2) ]
 ].map(([ char, r ]) => keepstrokes(character2svg(char), r));
+heading2base.to.length
+columns.to.join('<br><br>')
 
 columns.bo = heading2base.bo.map(character2svg)
 heading2base.en.map(character2svg).length
 
 columns.en = heading2base.en.map(character2svg);
-columns.en[columns.en.length-1] = keepstrokes(character2svg('寸'), range1(1, 2))
+columns.en[columns.en.length - 1] =
+    keepstrokes(character2svg('寸'), range1(1, 2))
 
 columns.fr = [ character2svg('丶') ];
 columns.fr = columns.fr.concat(keepstrokes(character2svg('塁'), range1(6, 9)));
