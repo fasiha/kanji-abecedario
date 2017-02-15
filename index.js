@@ -92,10 +92,11 @@ var charRangeToSVG = (char, str) =>
 var heading2base = {};
 heading2base.le = '冫氵忄丬亻禾米⻏弓犭扌礻衤糸王木言足酉食金馬日月'.split('');
 heading2base.ri = '彡刂⻏卩攵頁隹月'.split('');
-heading2base.to = '䒑⺌龴⺈宀艹⺮⺲⺍爫'.split('').concat([ 'every', '雨' ]);
+heading2base.to =
+    '䒑⺌龴⺈宀艹⺮⺲⺍爫'.split('').concat([ 'every', '雨' ]).concat('耂');
 heading2base.bo = 'ハ儿心灬月'.split('');
-heading2base.en = '厂广疒⻌廴囗'.split('');
-heading2base.fr = '丶,fun,丨,卜,巾,土,大,丿,丷,亅'.split(',');
+heading2base.en = '厂广疒⻌廴囗'.split('').concat('inch');
+heading2base.fr = '丶,fun,丨,卜,巾,土,大,丿,丷,亅,禸'.split(',');
 
 var columns = {};
 
@@ -112,25 +113,30 @@ columns.to = [
   [ '首', range1(1, 3) ], [ '肖', range1(1, 3) ], [ '甬', range1(1, 2) ],
   [ '急', range1(1, 2) ], [ '安', range1(1, 3) ], [ '草', range1(1, 3) ],
   [ '筒', range1(1, 6) ], [ '夢', range1(4, 8) ], [ '学', range1(1, 3) ],
-  [ '妥', range1(1, 4) ], [ '海', range1(4, 5) ], [ '雨', range1(1, 8) ]
+  [ '妥', range1(1, 4) ], [ '海', range1(4, 5) ], [ '雨', range1(1, 8) ],
+  [ '孝', range1(1, 4) ]
 ].map(([ char, r ]) => keepstrokes(character2svg(char), r));
 
 columns.bo = heading2base.bo.map(character2svg)
+heading2base.en.map(character2svg).length
 
 columns.en = heading2base.en.map(character2svg);
+columns.en[columns.en.length-1] = keepstrokes(character2svg('寸'), range1(1, 2))
 
 columns.fr = [ character2svg('丶') ];
 columns.fr = columns.fr.concat(keepstrokes(character2svg('塁'), range1(6, 9)));
 columns.fr = columns.fr.concat('丨,卜,巾,土,大'.split(',').map(character2svg));
-columns.fr = columns.fr.concat(keepstrokes(character2svg('図'), [5]));
-columns.fr = columns.fr.concat(keepstrokes(character2svg('首'), range1(1,2)));
-columns.fr = columns.fr.concat(keepstrokes(character2svg('小'), [1]));
+columns.fr = columns.fr.concat(keepstrokes(character2svg('図'), [ 5 ]));
+columns.fr = columns.fr.concat(keepstrokes(character2svg('首'), range1(1, 2)));
+columns.fr = columns.fr.concat(keepstrokes(character2svg('小'), [ 1 ]));
+columns.fr = columns.fr.concat(character2svg('禸'));
 
 heading2base.a = '一ニ人山石耳火川力刀女小少皿子母父㐅凵斤丘羽'.split('');
 columns.a = heading2base.a.map(character2svg);
 columns.a[17] = keepstrokes(character2svg('図'), range1(5, 6));
 
-heading2base.b = '口,言,占,加,召,豆,兄,兑,marshall,㠯,呂,中,虫,noble,串'.split(',');
+heading2base.b =
+    '口,言,占,加,召,豆,兄,兑,marshall,㠯,呂,中,虫,noble,串'.split(',');
 columns.b = heading2base.b.map(character2svg);
 columns.b[7] = charRangeToSVG('悦', '4-10');
 columns.b[8] = charRangeToSVG('帥', '1-6');
@@ -203,7 +209,8 @@ columns.n[22] = charRangeToSVG('厄', '3-4');
 headString('o', '止,歩,延,卸,正,sure,疋,足,走,是');
 columns.o[5] = charRangeToSVG('定', '4-8')
 
-headString('p', '水,永,求,park,pathos,㐮,衣,mourning,長,辰,氏,氐,民,以,detain,卬')
+headString('p',
+           '水,永,求,park,pathos,㐮,衣,mourning,長,辰,氏,氐,民,以,detain,卬')
 columns.p[3] = charRangeToSVG('園', '9-12');
 columns.p[7] = charRangeToSVG('喪', '9-12');
 columns.p[14] = charRangeToSVG('留', '1-5');
@@ -234,7 +241,8 @@ fixer('s', '㒸', '遂', '1-9');
 fixer('s', '貇', '懇', '1-13');
 fixer('s', '夋', '唆', '4-10');
 
-headString('t', '癶,association,介,余,金,舎,食,令,今,合,㑒,俞,侖,八,公,㕣,谷,tool');
+headString('t',
+           '癶,association,介,余,金,舎,食,令,今,合,㑒,俞,侖,八,公,㕣,谷,tool');
 fixer('t', 'tool', '具', '6-8');
 fixer('t', 'association', '会', '1-2');
 fixer('t', '㑒', '険', '4-11');
@@ -341,7 +349,7 @@ var uniquePaths = paths.filter((o, i) => i === seenTargets.get(o.target));
 fs.writeFileSync('data/paths.json', JSON.stringify(uniquePaths));
 
 var kanken = JSON.parse(fs.readFileSync('data/kanken.json', 'utf8'));
-var kanjiSet = new Set(Object.values(kanken).reduce((p,c)=>p+c).split(''));
+var kanjiSet = new Set(Object.values(kanken).reduce((p, c) => p + c).split(''));
 var kpaths = uniquePaths.filter(o => !kanjiSet.has(o.target));
 fs.writeFileSync('data/pathsNonKanji.json', JSON.stringify(kpaths));
 
