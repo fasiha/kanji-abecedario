@@ -430,14 +430,12 @@ update msg model =
                         ( model, Cmd.none )
 
         AskForTarget ->
-            if Set.isEmpty model.selectedKanjis then
+            if String.isEmpty model.inputText then
                 ( model, Cmd.none )
             else
                 ( model
-                , model.selectedKanjis
-                    |> Set.toList
-                    |> List.head
-                    |> withDefault ""
+                , model.inputText
+                    |> String.slice 0 1
                     |> getTarget
                 )
 
@@ -666,7 +664,7 @@ bulma model =
                     [ div [ class "column is-one-third" ]
                         [ Html.article [ class "notification is-success" ]
                             [ Html.h2 [ class "subtitle" ] [ text "Type in a kanji to break it down!" ]
-                            , div [ class "contents" ] <| renderKanjiJump
+                            , div [ class "contents" ] <| renderKanjiJump model.inputText
                             ]
                         , Html.h2 [ class "subtitle" ] [ text "Click on a kanji to break it down!" ]
                         , lazy bulmaLazyKanji model.kanjiOnly
@@ -692,9 +690,9 @@ bulmaLazyPrimitives primitives =
     div [ class "contents primitive-container-disp" ] <| renderPrimitivesDispOnly primitives
 
 
-renderKanjiJump : List (Html Msg)
-renderKanjiJump =
-    [ Html.input [ HA.placeholder "Enter kanji here", onInput Input ] []
+renderKanjiJump : String -> List (Html Msg)
+renderKanjiJump input =
+    [ Html.input [ HA.value input, HA.placeholder "Enter kanji here", onInput Input ] []
     , button [ onClick AskForTarget ] [ text "Jump to a kanji" ]
     ]
 
