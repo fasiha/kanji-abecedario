@@ -135,7 +135,7 @@ columns.fr = columns.fr.concat(keepstrokes(character2svg('小'), [ 1 ]));
 columns.fr = columns.fr.concat(character2svg('禸'));
 columns.fr = columns.fr.concat(keepstrokes(character2svg('片'), [ 4 ]));
 
-heading2base.a = '一ニ人山石耳火川力刀女小少皿子母父㐅凵斤丘羽'.split('');
+heading2base.a = '一二人山石耳火川力刀女小少皿子母父㐅凵斤丘羽'.split('');
 columns.a = heading2base.a.map(character2svg);
 columns.a[17] = keepstrokes(character2svg('図'), range1(5, 6));
 
