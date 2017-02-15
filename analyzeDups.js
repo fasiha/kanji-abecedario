@@ -25,11 +25,16 @@ var newSvgs = flatten1(
         .filter((v) => v.length));
 
 console.log('START NEW TO KANJIABCvvvvvvvvvvv');
-console.log(newSvgs
-                .map(([ group, svg, name ]) =>
-                         `<p><a href="/#target/${name}">${svg} ${name}</a> to ${group.toUpperCase()}</p>`)
-                .join('\n')
-                .replace(/\n\s*<path/g, '<path'));
+var printer =
+    _.chunk(newSvgs, Math.ceil(newSvgs.length / 4))
+        .map(v => '<div class="column">' +
+                  v.map(([ group, svg, name ]) =>
+                            `<p><a href="/#target/${name}">${svg} ${name}</a> to ${group.toUpperCase()}</p>`)
+                      .join('\n') +
+                  '</div>')
+        .join('\n\n')
+        .replace(/\n\s*<path/g, '<path');
+console.log(printer);
 console.log('START NEW TO KANJIABC^^^^^^^^^^^^^^^^^^');
 
 // Now, the rest of the work
@@ -78,24 +83,28 @@ var engStrings = engs.map(
                            : ''
                              } = ${a.toUpperCase()}${n}`);
 
-var rows =
-    _.zip(engSvgs, engStrings).map(v => v.join(' ')).map(s => `<p>${s}</p>`);
-console.log(_.chunk(rows, Math.ceil(rows.length / 4))
-                .map(v => v.join('\n'))
-                .map(s => `<div class="column">${s}</div>`)
-                .join('\n\n')
-                .replace(/\n\s*<path/g, '<path'));
+                             var rows = _.zip(engSvgs, engStrings)
+                                            .map(v => v.join(' '))
+                                            .map(s => `<p>${s}</p>`);
+                             console.log(
+                                 _.chunk(rows, Math.ceil(rows.length / 4))
+                                     .map(v => v.join('\n'))
+                                     .map(s => `<div class="column">${s}</div>`)
+                                     .join('\n\n')
+                                     .replace(/\n\s*<path/g, '<path'));
 
-console.log('' + rows.length + ' such primitives:');
+                             console.log('' + rows.length +
+                                         ' such primitives:');
 
-/*
-// See https://en.wikipedia.org/wiki/Web_colors
-var colors =
-    "Cornsilk,BlanchedAlmond,Gold,DarkKhaki,Wheat,BurlyWood,Tan,RosyBrown,SandyBrown,Goldenrod,DarkGoldenrod,Peru,Chocolate,SaddleBrown,Sienna,Brown,Maroon,Pink,MediumVioletRed,Salmon,IndianRed,Tomato,Crimson,DarkOliveGreen,Olive,YellowGreen,Chartreuse,DarkSeaGreen,MediumSeaGreen,PaleTurquoise,DarkTurquoise,CadetBlue,PowderBlue,DodgerBlue,Navy"
-        .split(',');
-colors.length
-var css = Object.keys(bases).map((s,i) => `svg.col-${s} {
-  border: 2px solid ${colors[i]};
-}`).join('\n');
-console.log(css)
-*/
+                             /*
+                             // See https://en.wikipedia.org/wiki/Web_colors
+                             var colors =
+                                 "Cornsilk,BlanchedAlmond,Gold,DarkKhaki,Wheat,BurlyWood,Tan,RosyBrown,SandyBrown,Goldenrod,DarkGoldenrod,Peru,Chocolate,SaddleBrown,Sienna,Brown,Maroon,Pink,MediumVioletRed,Salmon,IndianRed,Tomato,Crimson,DarkOliveGreen,Olive,YellowGreen,Chartreuse,DarkSeaGreen,MediumSeaGreen,PaleTurquoise,DarkTurquoise,CadetBlue,PowderBlue,DodgerBlue,Navy"
+                                     .split(',');
+                             colors.length
+                             var css = Object.keys(bases).map((s,i) =>
+                             `svg.col-${s} {
+                               border: 2px solid ${colors[i]};
+                             }`).join('\n');
+                             console.log(css)
+                             */

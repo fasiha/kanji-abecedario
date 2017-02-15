@@ -96,7 +96,7 @@ heading2base.to =
     '䒑⺌龴⺈宀艹⺮⺲⺍爫'.split('').concat('every,雨,耂,丆'.split(','));
 heading2base.bo = 'ハ儿心灬月'.split('');
 heading2base.en = '厂广疒⻌廴囗'.split('').concat('inch');
-heading2base.fr = '丶,fun,丨,卜,巾,土,大,丿,丷,亅,禸'.split(',');
+heading2base.fr = '丶,fun,丨,卜,巾,土,大,丿,丷,亅,禸,fishy'.split(',');
 
 var columns = {};
 
@@ -133,6 +133,7 @@ columns.fr = columns.fr.concat(keepstrokes(character2svg('図'), [ 5 ]));
 columns.fr = columns.fr.concat(keepstrokes(character2svg('首'), range1(1, 2)));
 columns.fr = columns.fr.concat(keepstrokes(character2svg('小'), [ 1 ]));
 columns.fr = columns.fr.concat(character2svg('禸'));
+columns.fr = columns.fr.concat(keepstrokes(character2svg('片'), [ 4 ]));
 
 heading2base.a = '一ニ人山石耳火川力刀女小少皿子母父㐅凵斤丘羽'.split('');
 columns.a = heading2base.a.map(character2svg);
