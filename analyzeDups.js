@@ -1,12 +1,43 @@
 var fs = require('fs');
+var _ = require('lodash');
+var flatten1 = v => v.reduce((prev, curr) => prev.concat(curr), []);
+
 var bases = JSON.parse(fs.readFileSync('data/svgs.json', 'utf8')).heading2base;
 var svgs = JSON.parse(fs.readFileSync('data/svgs.json', 'utf8')).columns;
+
+// This is how many primitives are in each group of KanjiABC originally. Because
+// I'm only adding to the ends of each group, I can recover which I've added.
+kabcSizes = [
+  24, 8,  12, 5,  6,  7,  22, 15, 20, 14, 13, 13, 14, 11, 19, 12,
+  12, 24, 20, 25, 10, 16, 17, 11, 26, 18, 6,  22, 12, 11, 17, 22
+];
+
+var fmap = require('./fmap');
+var news =
+    new Set(flatten1(fmap((k, v, len) => v.slice(len), Object.keys(bases),
+                          Object.values(bases), kabcSizes)
+                         .filter(v => v && v.length)));
+
+var newSvgs = flatten1(
+    fmap(
+        (k, v, b, len) => _.zip(v.slice(len), b.slice(len)).map(x => [k, ...x]),
+        Object.keys(svgs), Object.values(svgs), Object.values(bases), kabcSizes)
+        .filter((v) => v.length));
+
+console.log('START NEW TO KANJIABCvvvvvvvvvvv');
+console.log(newSvgs
+                .map(([ group, svg, name ]) =>
+                         `<p><a href="/#target/${name}">${svg} ${name}</a> to ${group.toUpperCase()}</p>`)
+                .join('\n')
+                .replace(/\n\s*<path/g, '<path'));
+console.log('START NEW TO KANJIABC^^^^^^^^^^^^^^^^^^');
+
+// Now, the rest of the work
 
 var a = Object.values(bases).reduce((p, c) => p.concat(c));
 a.length;
 var s = new Set(a);
 s.size;
-var _ = require('lodash');
 
 console.log(Object.values(_.groupBy(a))
                 .filter(v => v.length > 1)
@@ -23,7 +54,6 @@ Object.values(_.groupBy(a))
     .map(v => v[0])
     .map(s => o[s]);
 
-var flatten1 = v => v.reduce((prev, curr) => prev.concat(curr), []);
 var dict = flatten1(_.map(bases, (vs, k) => vs.map((v, i) => [v, k, i + 1])));
 var reps = _.filter(_.groupBy(dict, o => o[0]), (v, k) => v.length > 1);
 
@@ -43,8 +73,11 @@ var engs = _.sortBy(dict.filter(([ s ]) => s.match(/[a-zA-Z]/)),
                     v => base2num.get(v[1]));
 var engSvgs = engs.map(v => svgs[v[1]][v[2] - 1]);
 var engStrings = engs.map(
-    ([ key, a, n ]) =>
-        `<a href="/#target/${key}">${key}</a> = ${a.toUpperCase()}${n}`);
+    ([ key, a, n ]) => `<a href="/#target/${key}">${key}</a>${news.has(key)
+                           ? '⭐️'
+                           : ''
+                             } = ${a.toUpperCase()}${n}`);
+
 var rows =
     _.zip(engSvgs, engStrings).map(v => v.join(' ')).map(s => `<p>${s}</p>`);
 console.log(_.chunk(rows, Math.ceil(rows.length / 4))

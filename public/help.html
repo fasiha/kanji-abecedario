@@ -5,6 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <link rel="stylesheet" type="text/css" href="bulma.css">
+<link rel="stylesheet" type="text/css" href="main.css">
 </head>
 
 <section class="hero is-primary is-bold">
@@ -113,7 +114,7 @@
     <h1 class="title" id="kanji-abc">Technical appendix: Deviations from Kanji ABC</h1>
     <div class="content">
       <p>
-        The 484 graphemes in <a href="http://www.kanji-web.com"><cite>Kanji ABC</cite></a> have been reduced to the 461 primitives in KanjiBreak by combining variants of the same primitive. While <cite>Kanji ABC</cite> is a tool for <em>learning</em> kanji, KanjiBreak is a tool for <em>making</em> kanji-learning resources, and so the decision was made to ignore sufficiently-similar variants, e.g., 雨 versus <a href="http://www.fileformat.info/info/unicode/char/2ed7/index.htm">⻗ (U+2ED7)</a>. Note, however, that this isn’t a clear-cut distinction as KanjiBreak recognizes the difference between, e.g., 心 and <a href="http://www.fileformat.info/info/unicode/char/5fc4/index.htm">忄 (U+5FC4)</a>.
+        The 484 graphemes in <a href="http://www.kanji-web.com"><cite>Kanji ABC</cite></a> have been condensed for KanjiBreak by combining variants of the same primitive. While <cite>Kanji ABC</cite> is a tool for <em>learning</em> kanji, KanjiBreak is a tool for <em>making</em> kanji-learning resources, and so the decision was made to ignore sufficiently-similar variants, e.g., 雨 versus <a href="http://www.fileformat.info/info/unicode/char/2ed7/index.htm">⻗ (U+2ED7)</a>. Note, however, that this isn’t a clear-cut distinction as KanjiBreak recognizes the difference between, e.g., 心 and <a href="http://www.fileformat.info/info/unicode/char/5fc4/index.htm">忄 (U+5FC4)</a>.
       </p>
       <p>
         Below is the list of normalized <cite>Kanji ABC</cite> graphemes.
@@ -147,6 +148,21 @@
           <p>大: FR7, V9</p>
           <p>釆: G5, J2</p>
         </div>
+      </div>
+
+      <p>
+        In addition to condensing <cite>Kanji ABC</cite>’s primitives, KanjiBreak adds some new ones, listed below.
+      </p>
+      <div>
+        <p><a href="/#target/耂"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 109 109"><path d="M31.5,28.06c1.67,0.56,3.88,0.42,5.62,0.29c8.33-0.63,21.28-2.9,29.01-3.45c1.65-0.12,3.14-0.19,4.75,0.13"/><path d="M52.92,10.87c0.98,0.98,1.52,2.51,1.52,3.89c0,8.95-0.19,18.37-0.19,24.5"/><path d="M13.5,43.53c3.38,0.84,7.19,0.56,10.36,0.21c14.75-1.63,38.7-4.24,61.02-5.64c3.56-0.22,7.29-0.31,10.75,0.61"/><path d="M80.84,15.98C81,17.12,80.62,18.75,79.5,20c-15.74,17.49-31,32.88-61.19,50.22"/></svg> 耂</a> to TO</p>
+        <p><a href="/#target/inch"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 109 109"><path d="M11.38,40.67c3.62,1.08,8.48,0.79,11.88,0.4c21.24-2.45,43.24-4.7,63.24-6.1c3.86-0.27,8.38-0.1,11.63,0.59"/><path d="M66.27,11.83c1.08,1.08,1.76,2.42,1.76,4.52c0,20.4-0.01,69.16-0.01,74.12c0,13.28-7.52,1.78-9.71,0.25"/>
+        </svg> inch</a> to EN</p>
+        <p><a href="/#target/丿"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 109 109"><path d="M72.02,32.18c0.48,1.32,0.38,2.64-0.43,4.81C65.25,54.12,53.12,70.62,34,80.75"/></svg> 丿</a> to FR</p>
+        <p><a href="/#target/丷"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 109 109"><path d="M35.25,17.5c2.93,1.85,7.58,7.59,8.31,10.47"/><path d="M69.97,13.68c0.53,0.82,0.4,2.07-0.14,3.35c-1.42,3.32-4.2,8.22-7.83,12.22"/>
+        </svg> 丷</a> to FR</p>
+        <p><a href="/#target/亅"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 109 109"><path d="M54.71,18.37c1.4,1.4,2.26,3.13,2.26,5.77c0,14.56-0.26,54.91-0.26,59.87c0,11.25-7.21,1.5-8.71,0.25"/>
+        </svg> 亅</a> to FR</p>
+        <p><a href="/#target/禸"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 109 109"><path d="M18.38,28.5c1.5,1.5,1.73,3.25,1.73,5.8c0,6.2,0,48.07,0,58.45"/><path d="M20.72,31.66c10.15-1.16,45.78-4.16,63.3-5.85c3.73-0.36,5.92,1.94,5.92,4.58c0,8.23-1.07,45.48-2.18,59.64c-0.84,10.7-6.01,3.22-8.6,0.17"/><path d="M53.94,5.75c0.97,0.97,1.45,2.38,1.45,4.24c0,8.76-0.01,46.18-0.01,48.88"/><path d="M36.5,61.1c0.88,1.9,1.84,1.98,4.41,1.58c5.09-0.8,19.71-3.42,28.96-5.17"/><path d="M60.62,46.38c5.8,3.81,14.98,15.68,16.43,21.61"/></svg> 禸</a> to FR</p>
       </div>
 
     </div>
