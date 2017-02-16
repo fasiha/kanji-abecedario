@@ -1,13 +1,14 @@
 # Todo
 
 - [ ] Twitter and GitHub links.
-- [ ] Show a texty representation of primitive at the top, e.g., for wiktionary.
-- [x] If a not-logged-in user adds a primitive and clicks submit, after login, their breakdown isn't preserved. (As implemented now, just ask to login when first selection made if not logged in.)
-- [ ] Easy lookup of primitives by existing decompositions
-- [ ] Event sourcing: store events with Dat and rebuild the state at each Node startup.
+- [ ] Once [Dat stabilizes](), publish link.
 
 Done
 
+- [x] Event sourcing: store events with Dat and rebuild the state at each Node startup.
+- [x] Show a texty representation of primitive at the top, e.g., for wiktionary.
+- [x] If a not-logged-in user adds a primitive and clicks submit, after login, their breakdown isn't preserved. (As implemented now, just ask to login when first selection made if not logged in.)
+- [x] Easy lookup of primitives by existing decompositions
 - [x] About + Export (static HTML, outside Elm)
 - [x] CSS-ify primitives/kanji list and error flash
 - [x] Add numbers to hover over primitives
