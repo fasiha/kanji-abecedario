@@ -751,14 +751,22 @@ bulma model =
 
 renderSearch : Model -> List (Html Msg)
 renderSearch model =
-    [ Html.input
-        [ HA.value model.searchText
-        , HA.placeholder "Enter kanji to search"
-        , onInput InputSearchText
+    let
+        renderer =
+            svgPrimitiveOrKanji model.primitives
+    in
+        [ Html.input
+            [ HA.value model.searchText, HA.placeholder "Enter kanji to search", onInput InputSearchText ]
+            []
+        , div [] <|
+            List.map
+                (\res ->
+                    Html.p [] <|
+                        (renderer res.target)
+                            :: (List.map renderer (String.split "," res.deps))
+                )
+                model.searchResults
         ]
-        []
-    , div [] <| List.map (\res -> Html.p [] [ text <| res.target ++ ": " ++ res.deps ]) model.searchResults
-    ]
 
 
 bulmaLazyKanji : Dict String Int -> Html Msg
@@ -832,12 +840,7 @@ renderSelected selecteds primitives =
         [ div []
             (selecteds
                 |> Set.toList
-                |> List.map
-                    (\s ->
-                        Dict.get s primitives
-                            |> Maybe.map (svgPrimitive "dependency")
-                            |> withDefault (svgKanji s)
-                    )
+                |> List.map (svgPrimitiveOrKanji primitives)
             )
         , button [ onClick Record ] [ text "Submit" ]
         ]
@@ -877,6 +880,13 @@ svgPrimitive classname primitive =
         (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
 
 
+svgPrimitiveOrKanji : Dict String Primitive -> String -> Html Msg
+svgPrimitiveOrKanji primitives text =
+    Dict.get text primitives
+        |> Maybe.map (svgPrimitive "dependency")
+        |> withDefault (svgKanji text)
+
+
 renderOneDeps : Dict String Primitive -> Maybe String -> Dependencies -> Html Msg
 renderOneDeps primitives userDeps dep =
     let
@@ -891,11 +901,7 @@ renderOneDeps primitives userDeps dep =
             )
             [ span []
                 (List.map
-                    (\s ->
-                        Dict.get s primitives
-                            |> Maybe.map (svgPrimitive "dependency")
-                            |> withDefault (svgKanji s)
-                    )
+                    (svgPrimitiveOrKanji primitives)
                     (String.split "," dep.depString)
                 )
             , text
