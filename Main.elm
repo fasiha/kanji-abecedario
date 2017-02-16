@@ -45,6 +45,10 @@ type alias Primitive =
     { i : Int, paths : List String, target : String, heading : String }
 
 
+type alias SearchResult =
+    { target : String, pos : Int, deps : String }
+
+
 type alias Model =
     { err : String
     , loggedIn : Bool
@@ -54,6 +58,8 @@ type alias Model =
     , selectedKanjis : Set String
     , kanjiOnly : Dict String Int
     , inputText : String
+    , searchText : String
+    , searchResults : List SearchResult
     }
 
 
@@ -67,6 +73,8 @@ init initialLocation =
         Set.empty
         Dict.empty
         ""
+        ""
+        []
     , Cmd.batch
         [ (case Url.parseHash route initialLocation of
             Just (RoutePos pos) ->
@@ -83,6 +91,14 @@ init initialLocation =
         , getPing
         ]
     )
+
+
+searchResultDecoder : Decode.Decoder SearchResult
+searchResultDecoder =
+    Decode.map3 SearchResult
+        (Decode.field "target" Decode.string)
+        (Decode.field "rowid" Decode.int)
+        (Decode.field "deps" Decode.string)
 
 
 type alias UserDeps =
@@ -191,6 +207,8 @@ type Msg
     | AskForTarget
     | GotKanjiOnly (Result Http.Error String)
     | ClearErr
+    | InputSearchText String
+    | GotSearchResults (Result Http.Error (List SearchResult))
 
 
 port login : String -> Cmd msg
@@ -235,13 +253,24 @@ update msg model =
             let
                 url =
                     routeToFragment (RoutePos target.pos)
+
+                newmodel =
+                    { model
+                        | target = Just target
+                        , searchText = ""
+                        , searchResults = []
+                    }
             in
                 if List.isEmpty target.deps then
-                    ( { model | target = Just target, selected = Set.empty, selectedKanjis = Set.empty, inputText = "" }
+                    ( { newmodel
+                        | selected = Set.empty
+                        , selectedKanjis = Set.empty
+                        , inputText = ""
+                      }
                     , Navigation.newUrl url
                     )
                 else
-                    ( { model | target = Just target }
+                    ( newmodel
                     , Cmd.batch
                         [ Navigation.newUrl url
                         , askForUserDeps target.target
@@ -448,6 +477,40 @@ update msg model =
         ClearErr ->
             ( { model | err = "" }, Cmd.none )
 
+        InputSearchText text ->
+            if String.isEmpty text then
+                ( { model | searchText = text, searchResults = [] }, Cmd.none )
+            else
+                ( { model | searchText = text }, searchText text )
+
+        GotSearchResults (Err err) ->
+            let
+                newmodel =
+                    { model | searchResults = [] }
+            in
+                case err of
+                    Http.BadStatus res ->
+                        case (res |> .status |> .code) of
+                            404 ->
+                                -- no user deps
+                                ( newmodel, Cmd.none )
+
+                            _ ->
+                                ( { newmodel | err = (toString err) }, delayClearErr )
+
+                    _ ->
+                        ( { newmodel | err = (toString err) }, delayClearErr )
+
+        GotSearchResults (Ok results) ->
+            ( { model | searchResults = results }, Cmd.none )
+
+
+searchText : String -> Cmd Msg
+searchText text =
+    Decode.list searchResultDecoder
+        |> Http.get ("/api/searchTarget/" ++ (String.slice 0 1 text))
+        |> Http.send GotSearchResults
+
 
 provideJwt : String -> Cmd Msg
 provideJwt token =
@@ -649,6 +712,8 @@ bulma model =
                             ]
                         , Html.h2 [ class "subtitle" ] [ text "Existing choices:" ]
                         , div [ class "contents" ] <| renderTargetDeps model.target model.primitives
+                        , Html.h2 [ class "subtitle" ] [ text "Search" ]
+                        , div [ class "contents" ] <| renderSearch model
                         ]
                     , div [ class "column" ]
                         [ Html.article [ class "notification is-success" ]
@@ -682,6 +747,18 @@ bulma model =
             ]
         , Html.section [ class "hero is-warning" ] [ div [ class "container" ] [ div [] <| renderModel model ] ]
         ]
+
+
+renderSearch : Model -> List (Html Msg)
+renderSearch model =
+    [ Html.input
+        [ HA.value model.searchText
+        , HA.placeholder "Enter kanji to search"
+        , onInput InputSearchText
+        ]
+        []
+    , div [] <| List.map (\res -> Html.p [] [ text <| res.target ++ ": " ++ res.deps ]) model.searchResults
+    ]
 
 
 bulmaLazyKanji : Dict String Int -> Html Msg

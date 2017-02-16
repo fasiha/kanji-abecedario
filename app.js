@@ -162,6 +162,17 @@ app.get('/api/getTarget/:target', (req, res) => {
       .catch(makeError(res, 'getTarget'));
 });
 
+app.get('/api/searchTarget/:target', (req, res) => {
+  // FIXME extract first kanji or English keyword
+  var target = req.params.target;
+
+  db.searchTarget(target)
+      .then(result => result.length === 0
+                          ? res.status(404).send('no rows found')
+                          : res.json(result))
+      .catch(makeError(res, 'searchTarget'));
+})
+
 app.get('/api/kanjiOnly', (req, res) => { res.json(db.getKanjiOnly()); });
 
 var port = process.env.PORT || 3000;
