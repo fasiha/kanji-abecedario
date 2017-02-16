@@ -209,6 +209,7 @@ type Msg
     | ClearErr
     | InputSearchText String
     | GotSearchResults (Result Http.Error (List SearchResult))
+    | ToggleDependency String
 
 
 port login : String -> Cmd msg
@@ -504,6 +505,22 @@ update msg model =
         GotSearchResults (Ok results) ->
             ( { model | searchResults = results }, Cmd.none )
 
+        ToggleDependency text ->
+            if Dict.member text model.primitives then
+                ( { model | selected = toggle text model.selected }, Cmd.none )
+            else if Dict.member text model.kanjiOnly then
+                ( { model | selectedKanjis = toggle text model.selectedKanjis }, Cmd.none )
+            else
+                ( model, Cmd.none )
+
+
+toggle : comparable -> Set comparable -> Set comparable
+toggle c d =
+    if Set.member c d then
+        Set.remove c d
+    else
+        Set.insert c d
+
 
 searchText : String -> Cmd Msg
 searchText text =
@@ -749,11 +766,20 @@ bulma model =
         ]
 
 
+svgPrimitiveOrKanji : Dict String Primitive -> String -> Html Msg
+svgPrimitiveOrKanji primitives text =
+    a [ onClick <| ToggleDependency text, HA.title "Click to toggle!" ]
+        [ Dict.get text primitives
+            |> Maybe.map (svgPrimitive "dependency")
+            |> withDefault (svgKanji text)
+        ]
+
+
 renderSearch : Model -> List (Html Msg)
 renderSearch model =
     let
-        renderer =
-            svgPrimitiveOrKanji model.primitives
+        renderer s =
+            svgPrimitiveOrKanji model.primitives s
     in
         [ Html.input
             [ HA.value model.searchText, HA.placeholder "Enter kanji to search", onInput InputSearchText ]
@@ -878,13 +904,6 @@ svgPrimitive classname primitive =
     Svg.svg
         [ viewBox "0 0 109 109", class classname ]
         (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
-
-
-svgPrimitiveOrKanji : Dict String Primitive -> String -> Html Msg
-svgPrimitiveOrKanji primitives text =
-    Dict.get text primitives
-        |> Maybe.map (svgPrimitive "dependency")
-        |> withDefault (svgKanji text)
 
 
 renderOneDeps : Dict String Primitive -> Maybe String -> Dependencies -> Html Msg
