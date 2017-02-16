@@ -727,10 +727,14 @@ bulma model =
                             [ Html.h2 [ class "subtitle" ] [ text "Your breakdown:" ]
                             , div [ class "contents" ] <| renderSelected (Set.union model.selected model.selectedKanjis) model.primitives
                             ]
-                        , Html.h2 [ class "subtitle" ] [ text "Existing choices:" ]
-                        , div [ class "contents" ] <| renderTargetDeps model.target model.primitives
-                        , Html.h2 [ class "subtitle" ] [ text "Search" ]
-                        , div [ class "contents" ] <| renderSearch model
+                        , Html.article [ class "notification" ]
+                            [ Html.h2 [ class "subtitle" ] [ text "Existing choices:" ]
+                            , div [ class "contents" ] <| renderTargetDeps model.target model.primitives
+                            ]
+                        , Html.article [ class "notification" ]
+                            [ Html.h2 [ class "subtitle" ] [ text "Search:" ]
+                            , div [ class "contents" ] <| renderSearch model
+                            ]
                         ]
                     , div [ class "column" ]
                         [ Html.article [ class "notification is-success" ]
@@ -784,6 +788,7 @@ renderSearch model =
         [ Html.input
             [ HA.value model.searchText, HA.placeholder "Enter kanji to search", onInput InputSearchText ]
             []
+        , Html.hr [] []
         , div [] <|
             List.map
                 (\res ->
