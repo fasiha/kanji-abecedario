@@ -213,23 +213,34 @@ function getTarget(target) {
 }
 
 var searchTargetStatement = db.prepare(`
-  SELECT DISTINCT d2.target,
-                  d2.rowid,
-                  group_concat(d2.dependency) as deps
-  FROM   deps d1
-         INNER JOIN deps d2
-                 ON d2.target = d1.target
-  WHERE  d1.target = ?
-            OR d1.dependency = ?
-  GROUP  BY d2.target
-  ORDER  BY d2.rowid
-  LIMIT     50`);
+  SELECT d.target as target,
+         group_concat(d.dependency) as deps
+  FROM   (WITH RECURSIVE
+              alldeps(x) AS (
+                  VALUES (?)
+                    UNION
+                  SELECT deps.dependency
+                  FROM   deps,
+                         alldeps
+                  WHERE  deps.target=alldeps.x ),
+              alltargets(x) AS (
+                  VALUES (?)
+                    UNION
+                  SELECT deps.target
+                  FROM   deps,
+                         alltargets
+                  WHERE  deps.dependency=alltargets.x )
+          SELECT *
+          FROM   alltargets
+            UNION ALL
+          SELECT     *
+          FROM       alldeps) AS cte
+  INNER JOIN deps d
+  ON         d.target = cte.x
+  GROUP BY   d.target`);
+// TODO LIMIT needed above?
 function searchTarget(target) {
   return searchTargetStatement.allAsync([ target, target ]);
-  /*.then(res => {
-    res.forEach(o => o.deps = o.deps.split(',')); // in-place mutation
-    return res;
-  });*/
 }
 
 module.exports = {

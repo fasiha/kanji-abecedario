@@ -46,7 +46,7 @@ type alias Primitive =
 
 
 type alias SearchResult =
-    { target : String, pos : Int, deps : String }
+    { target : String, deps : String }
 
 
 type alias Model =
@@ -95,9 +95,8 @@ init initialLocation =
 
 searchResultDecoder : Decode.Decoder SearchResult
 searchResultDecoder =
-    Decode.map3 SearchResult
+    Decode.map2 SearchResult
         (Decode.field "target" Decode.string)
-        (Decode.field "rowid" Decode.int)
         (Decode.field "deps" Decode.string)
 
 
