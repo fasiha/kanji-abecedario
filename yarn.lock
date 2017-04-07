@@ -503,16 +503,17 @@ dat-encoding@^4.0.1:
   dependencies:
     safe-buffer "^5.0.1"
 
-dat-node@^1.3.8:
-  version "1.3.8"
-  resolved "https://registry.yarnpkg.com/dat-node/-/dat-node-1.3.8.tgz#ccc4efa7855e9572c6c9a0225288771a2d1a0406"
+dat-node@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/dat-node/-/dat-node-1.4.1.tgz#d566c2d24ec5250e2513e9bfe7b1ab1dff9a1d98"
   dependencies:
     anymatch "^1.3.0"
     count-files "^2.1.0"
     dat-encoding "^4.0.1"
+    datland-swarm-defaults "^1.0.2"
     debug "^2.6.0"
-    hyperdiscovery "^1.0.1"
-    hyperdrive "^7.14.2"
+    discovery-swarm "^4.3.0"
+    hyperdrive "^7.14.5"
     hyperdrive-import-files "^2.8.0"
     hyperdrive-network-speed "^1.0.1"
     hyperdrive-stats "^3.0.0"
@@ -527,7 +528,7 @@ dateformat@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-2.0.0.tgz#2743e3abb5c3fc2462e527dca445e04e9f4dee17"
 
-datland-swarm-defaults@^1.0.0:
+datland-swarm-defaults@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/datland-swarm-defaults/-/datland-swarm-defaults-1.0.2.tgz#277b895a39f1aa7f96a495a02fb3662a5ed9f2e0"
   dependencies:
@@ -606,9 +607,9 @@ discovery-channel@^5.3.0:
     pretty-hash "^1.0.0"
     thunky "^0.1.0"
 
-discovery-swarm@^4.0.2:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/discovery-swarm/-/discovery-swarm-4.2.0.tgz#0739add2d035cdf4a94532baea64d99692c0e2d0"
+discovery-swarm@^4.3.0:
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/discovery-swarm/-/discovery-swarm-4.3.2.tgz#a80322dc3b33bcddebbff207d1c90bfe46e69bf6"
   dependencies:
     buffer-equals "^1.0.3"
     connections "^1.4.2"
@@ -1321,13 +1322,6 @@ hypercore@^4.10.0:
     unordered-set "^2.0.0"
     varint "^4.0.0"
 
-hyperdiscovery@^1.0.1:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/hyperdiscovery/-/hyperdiscovery-1.1.0.tgz#cfe7444c01452372dcfe5e7a868ae0425fcf0ee1"
-  dependencies:
-    datland-swarm-defaults "^1.0.0"
-    discovery-swarm "^4.0.2"
-
 hyperdrive-duplicate@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/hyperdrive-duplicate/-/hyperdrive-duplicate-1.0.0.tgz#6adf7b574d73b619b3c4c6880993a0d0686297a5"
@@ -1367,9 +1361,9 @@ hyperdrive-stats@^3.0.0:
     hyperdrive-encoding "^2.0.0"
     object-assign "^4.1.0"
 
-hyperdrive@^7.14.2:
-  version "7.14.3"
-  resolved "https://registry.yarnpkg.com/hyperdrive/-/hyperdrive-7.14.3.tgz#7f7bb011a7e170e4fa3a9c9913f8f2d5e72f8c16"
+hyperdrive@^7.14.5:
+  version "7.14.5"
+  resolved "https://registry.yarnpkg.com/hyperdrive/-/hyperdrive-7.14.5.tgz#06fd3ada9d573571a17dbb7ce6d2ec051c647961"
   dependencies:
     bulk-write-stream "^1.1.1"
     from2 "^2.1.1"
