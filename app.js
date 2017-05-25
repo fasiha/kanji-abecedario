@@ -15,6 +15,7 @@ assert(process.env.AUTH0_CLIENT_SECRET && process.env.AUTH0_CLIENT_ID &&
        process.env.SESSION_SECRET && process.env.SALT);
 
 var db = require('./db');
+var hasher = require('./hashuser');
 
 var app = express();
 var router = express.Router();
@@ -61,8 +62,17 @@ app.use((err, req, res, next) => {
 });
 
 app.get('/api/login', (req, res) => {
-  req.session.user = {sub : req.user.sub};
-  res.send("OK");
+  // User reached here with a valid JWT. `req.user.sub` is a string with
+  // their identity.
+  hasher(req.user.sub)
+      .then(hash => {
+        req.session.user = hash;
+        res.send("OK");
+      })
+      .catch(err => {
+        res.status(500).send('hash error');
+        console.error("ERROR hashing", err);
+      });
 });
 
 app.get('/api/logout', (req, res) => {
@@ -94,7 +104,7 @@ var makeError = (res, errname) => (err => {
 });
 
 app.post('/api/secured/record/:target', (req, res) => {
-  db.record(req.params.target, req.session.user.sub, req.body)
+  db.record(req.params.target, req.session.user, req.body)
       .then(_ => res.redirect(`/api/getTarget/${req.params.target}`))
       .catch(makeError(res, 'record'));
 });
@@ -114,7 +124,7 @@ app.get('/api/firstNoDeps', (req, res) => {
 });
 
 app.get('/api/secured/firstNoDeps', (req, res) => {
-  db.firstNoDepsUser(req.session.user.sub)
+  db.firstNoDepsUser(req.session.user)
       .then(result => result.length === 0
                           ? res.status(404).send('no rows found')
                           : res.json(result))
@@ -122,18 +132,17 @@ app.get('/api/secured/firstNoDeps', (req, res) => {
 });
 
 app.get('/api/exportdb', (req, res) => {
-  if (req.session && req.session.user && req.session.user.sub) {
-    db.myhash(req.session.user.sub)
-        .then(hash => res.status(200).download(
-                  __dirname + '/deps.db',
-                  `KanjiBreak-${hash.replace(/[:+/=]/g, '_')}.sqlite3`));
+  if (req.session && req.session.user) {
+    res.status(200).download(
+        __dirname + '/deps.db',
+        `KanjiBreak-${req.session.user.replace(/[:+/=]/g, '_')}.sqlite3`);
     return;
   }
   res.status(200).download(__dirname + '/deps.db', 'KanjiBreak.sqlite3');
 });
 
 app.get('/api/secured/userDeps/:target', (req, res) => {
-  db.userDeps(req.params.target, req.session.user.sub)
+  db.userDeps(req.params.target, req.session.user)
       .then(result => result.length === 0
                           ? res.status(404).send('no rows found')
                           : res.json(result))
@@ -141,7 +150,7 @@ app.get('/api/secured/userDeps/:target', (req, res) => {
 });
 
 app.get('/api/secured/myDeps', (req, res) => {
-  db.myDeps(req.session.user.sub)
+  db.myDeps(req.session.user)
       .then(result => res.json(result))
       .catch(makeError(res, 'myDeps'));
 });

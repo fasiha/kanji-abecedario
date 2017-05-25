@@ -3,23 +3,10 @@ var Promise = require("bluebird");
 var fs = require('fs');
 var assert = require('assert');
 var sqlite3 = Promise.promisifyAll(require('sqlite3')).verbose();
-var crypto = Promise.promisifyAll(require('crypto'));
-require('dotenv').config();
 var path = require('path');
 var fs = Promise.promisifyAll(require('fs'));
 var mkdirpp = Promise.promisifyAll(require('mkdirp')).mkdirpAsync;
 var datdb = require('./datdb');
-
-var iterations = 1000;
-var keylen = 18; // bytes
-var digest = "sha256";
-
-function myhash(string) {
-  return crypto
-      .pbkdf2Async(string, process.env.SALT, iterations, keylen, digest)
-      .then(key => "hash1_" + Buffer(key, 'binary').toString('hex'))
-      .catch(console.log.bind(console));
-}
 
 // DATA
 function stringSetDiff(a, b) {
@@ -99,21 +86,20 @@ var recordStatement = db.prepare(`INSERT INTO deps VALUES (?, ?, ?)`);
 var recordDeleteStatement =
     db.prepare(`DELETE FROM deps WHERE target = ? AND user = ?`);
 function record(target, user, depsArray) {
-  return myhash(user).then(hash => {
-    var depsToSubmit = cleanDeps(depsArray);
+  var hash = user;
+  var depsToSubmit = cleanDeps(depsArray);
 
-    // Write to file system: will be picked up by Dat: p2p ftw!
-    var thispath = path.join(datdb.path, target, hash);
-    mkdirpp(thispath)
-        .then(made => fs.writeFileAsync(path.join(thispath, 'data.json'),
-                                        JSON.stringify(depsToSubmit)))
-        .catch(err => console.error("ERROR writing:", thispath, err));
+  // Write to file system: will be picked up by Dat: p2p ftw!
+  var thispath = path.join(datdb.path, target, hash);
+  mkdirpp(thispath)
+      .then(made => fs.writeFileAsync(path.join(thispath, 'data.json'),
+                                      JSON.stringify(depsToSubmit)))
+      .catch(err => console.error("ERROR writing:", thispath, err));
 
-    // Write to database
-    return recordDeleteStatement.runAsync([ target, hash ])
-        .then(_ => Promise.all(depsToSubmit.map(
-                  d => recordStatement.runAsync([ target, hash, d ]))));
-  });
+  // Write to database
+  return recordDeleteStatement.runAsync([ target, hash ])
+      .then(_ => Promise.all(depsToSubmit.map(
+                d => recordStatement.runAsync([ target, hash, d ]))));
 }
 
 // Note, the following makes no guarantees about sort order of each dependency
@@ -125,9 +111,7 @@ var myDepsStatement = db.prepare(`
   FROM   deps
   WHERE  deps.USER = ?
   GROUP  BY target`);
-function myDeps(user) {
-  return myhash(user).then(hash => myDepsStatement.allAsync([ hash ]));
-}
+function myDeps(hash) { return myDepsStatement.allAsync([ hash ]); }
 
 var depsForStatement = db.prepare(`
   SELECT sortedDeps,
@@ -149,9 +133,8 @@ var userDepsStatement = db.prepare(`
   FROM deps
   WHERE deps.target = ? AND deps.user = ?
   ORDER BY deps.dependency`);
-function userDeps(target, user, cb) {
-  return myhash(user)
-      .then(hash => userDepsStatement.allAsync([ target, hash ]))
+function userDeps(target, hash, cb) {
+  return userDepsStatement.allAsync([ target, hash ])
       .then(result => result[0].deps ? result[0] : []);
   // same sort order as depsFor
 }
@@ -182,9 +165,9 @@ var firstNoDepsUserStatement = db.prepare(`
                       WHERE deps.user = ?)
   ORDER BY rowid
   LIMIT 1`);
-function firstNoDepsUser(user) {
+function firstNoDepsUser(hash) {
   return addDepsToTargetRowidPromise(
-      myhash(user).then(hash => firstNoDepsUserStatement.allAsync([ hash ])));
+      firstNoDepsUserStatement.allAsync([ hash ]));
 }
 
 function addDepsToTargetRowidPromise(promise) {
@@ -245,7 +228,6 @@ function searchTarget(target) {
 
 module.exports = {
   db,
-  myhash,
   record,
   depsFor,
   firstNoDeps,
