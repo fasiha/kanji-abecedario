@@ -1,9 +1,6 @@
 port module Main exposing (..)
 
 import Html.Lazy exposing (lazy)
-import Time
-import Task
-import Process
 import Html exposing (Html, button, div, text, a, span)
 import Html.Attributes as HA
 import Set exposing (Set)
@@ -17,6 +14,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Navigation
 import UrlParser as Url exposing ((</>), (<?>), s, int, string, top)
+import List.Extra exposing (groupWhile)
 
 
 main : Program Never Model Msg
@@ -286,17 +284,17 @@ update msg model =
                     case (res |> .status |> .code) of
                         404 ->
                             ( { model | err = "Couldn’t find anything at " ++ (res |> .url) ++ "! We forwarded you automatically." }
-                            , Cmd.batch [ getPos 1, delayClearErr ]
+                            , Cmd.batch [ getPos 1 ]
                             )
 
                         401 ->
                             ( { model | err = "Hey, looks like you need to be logged in to do that." }
-                            , Cmd.batch [ delayClearErr, login "doesntmatter" ]
+                            , Cmd.batch [ login "doesntmatter" ]
                             )
 
                         400 ->
                             ( { model | err = "The server was unhappy with the data you just sent. If it made a mistake, please contact us. Sorry for the inconvenience." }
-                            , delayClearErr
+                            , Cmd.none
                             )
 
                         _ ->
@@ -305,7 +303,7 @@ update msg model =
                             )
 
                 _ ->
-                    ( { model | err = (toString err) }, delayClearErr )
+                    ( { model | err = (toString err) }, Cmd.none )
 
         AskForUserDeps ->
             ( model
@@ -350,13 +348,13 @@ update msg model =
                                 ( newmodel, Cmd.none )
 
                             _ ->
-                                ( { newmodel | err = (toString err) }, delayClearErr )
+                                ( { newmodel | err = (toString err) }, Cmd.none )
 
                     _ ->
-                        ( { newmodel | err = (toString err) }, delayClearErr )
+                        ( { newmodel | err = (toString err) }, Cmd.none )
 
         GotPrimitives (Err err) ->
-            ( { model | err = (toString err) }, delayClearErr )
+            ( { model | err = (toString err) }, Cmd.none )
 
         GotPrimitives (Ok list) ->
             ( { model
@@ -472,7 +470,7 @@ update msg model =
             ( { model | kanjiOnly = str |> String.split "" |> List.indexedMap (flip (,)) |> Dict.fromList }, Cmd.none )
 
         GotKanjiOnly (Err err) ->
-            ( { model | err = toString err }, delayClearErr )
+            ( { model | err = toString err }, Cmd.none )
 
         ClearErr ->
             ( { model | err = "" }, Cmd.none )
@@ -496,10 +494,10 @@ update msg model =
                                 ( newmodel, Cmd.none )
 
                             _ ->
-                                ( { newmodel | err = (toString err) }, delayClearErr )
+                                ( { newmodel | err = (toString err) }, Cmd.none )
 
                     _ ->
-                        ( { newmodel | err = (toString err) }, delayClearErr )
+                        ( { newmodel | err = (toString err) }, Cmd.none )
 
         GotSearchResults (Ok results) ->
             ( { model | searchResults = results }, Cmd.none )
@@ -553,14 +551,6 @@ getPing =
 logoutCmd : Cmd Msg
 logoutCmd =
     Http.send LoggedOut (Http.getString "/api/logout")
-
-
-delayClearErr : Cmd Msg
-delayClearErr =
-    Task.perform identity
-        (Process.sleep (5 * Time.second)
-            |> Task.andThen (\() -> Task.succeed ClearErr)
-        )
 
 
 askForUserDeps : String -> Cmd Msg
@@ -741,7 +731,7 @@ bulma model =
                             , div [ class "contents" ] <| renderKanjiAsker model.inputText
                             ]
                         , Html.h2 [ class "subtitle" ] [ text "Select primitives to add to breakdown:" ]
-                        , div [ class "contents" ] <| renderPrimitives model.selected model.primitives
+                        , div [ class "contents" ] <| renderAllPrimitives model.selected model.primitives
                         ]
                     ]
                 ]
@@ -876,31 +866,50 @@ renderSelected selecteds primitives =
         ]
 
 
-renderPrimitives : Set String -> Dict String Primitive -> List (Html Msg)
-renderPrimitives selected primitives =
-    [ div [ HA.class "primitive-container" ]
-        (List.indexedMap (renderPrimitive selected) <| List.sortBy .i <| Dict.values primitives)
+renderAllPrimitives : Set String -> Dict String Primitive -> List (Html Msg)
+renderAllPrimitives selected primitives =
+    [ div [ HA.class "primitive-super-container" ]
+        (primitives
+            |> Dict.values
+            |> List.sortBy .i
+            |> groupWhile (\p q -> p.heading == q.heading)
+            |> List.map (renderPrimitives selected)
+        )
     ]
 
 
-renderPrimitive : Set String -> Int -> Primitive -> Html Msg
-renderPrimitive selecteds pos primitive =
-    Html.span [ HA.title ("#" ++ toString (1 + pos)) ]
-        [ Svg.svg
-            [ viewBox "0 0 109 109"
-            , class
-                (String.join " "
-                    [ ("col-" ++ primitive.heading)
-                    , if Set.member primitive.target selecteds then
-                        "primitive-selected"
-                      else
-                        ""
-                    ]
-                )
-            , onClick (SelectPrimitive primitive.target)
-            ]
-            (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
+renderPrimitives : Set String -> List Primitive -> Html Msg
+renderPrimitives selected primitives =
+    div [ HA.class "primitive-container" ]
+        [ span [] (List.indexedMap (renderPrimitive selected) primitives)
+        , text
+            (primitives
+                |> List.head
+                |> Maybe.map (.heading >> String.toUpper)
+                |> withDefault ""
+            )
         ]
+
+
+renderPrimitive : Set String -> Int -> Primitive -> Html Msg
+renderPrimitive selecteds num0 primitive =
+    let
+        heading =
+            primitive.heading
+    in
+        Html.span [ HA.title (heading ++ toString (num0 + 1) ++ "=" ++ primitive.target), HA.class "svg-inside" ]
+            [ Svg.svg
+                [ viewBox "0 0 109 109"
+                , class
+                    (if Set.member primitive.target selecteds then
+                        "primitive-selected"
+                     else
+                        ""
+                    )
+                , onClick (SelectPrimitive primitive.target)
+                ]
+                (List.map (\path -> Svg.path [ d path ] []) primitive.paths)
+            ]
 
 
 svgPrimitive : String -> Primitive -> Html Msg

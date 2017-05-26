@@ -5,6 +5,13 @@ body {
   background-color: #ffd18c;
 }
 
+span.svg-inside + span.svg-inside {
+  margin-left: -1px;
+}
+div.primitive-container + div.primitive-container{
+  margin-bottom: -1px;
+}
+
 svg {
   border: 1px solid hsl(171, 100%, 41%);
   width: 32px;
@@ -40,101 +47,8 @@ div.kanji-container a {
   font-family: sans-serif;
 }
 
-svg.col-le {
-  border-color: MistyRose;
-}
-svg.col-ri {
-  border-color: BlanchedAlmond;
-}
-svg.col-to {
-  border-color: Gold;
-}
-svg.col-bo {
-  border-color: DarkKhaki;
-}
-svg.col-en {
-  border-color: Wheat;
-}
-svg.col-fr {
-  border-color: BurlyWood;
-}
-svg.col-a {
-  border-color: Tan;
-}
-svg.col-b {
-  border-color: RosyBrown;
-}
-svg.col-c {
-  border-color: SandyBrown;
-}
-svg.col-d {
-  border-color: Goldenrod;
-}
-svg.col-e {
-  border-color: DarkGoldenrod;
-}
-svg.col-f {
-  border-color: Peru;
-}
-svg.col-g {
-  border-color: Chocolate;
-}
-svg.col-h {
-  border-color: SaddleBrown;
-}
-svg.col-i {
-  border-color: Sienna;
-}
-svg.col-j {
-  border-color: Brown;
-}
-svg.col-k {
-  border-color: Maroon;
-}
-svg.col-l {
-  border-color: Pink;
-}
-svg.col-m {
-  border-color: MediumVioletRed;
-}
-svg.col-n {
-  border-color: Salmon;
-}
-svg.col-o {
-  border-color: IndianRed;
-}
-svg.col-p {
-  border-color: Tomato;
-}
-svg.col-q {
-  border-color: Crimson;
-}
-svg.col-r {
-  border-color: DarkOliveGreen;
-}
-svg.col-s {
-  border-color: Olive;
-}
-svg.col-t {
-  border-color: YellowGreen;
-}
-svg.col-u {
-  border-color: Chartreuse;
-}
-svg.col-v {
-  border-color: DarkSeaGreen;
-}
-svg.col-w {
-  border-color: MediumSeaGreen;
-}
-svg.col-x {
-  border-color: PaleTurquoise;
-}
-svg.col-y {
-  border-color: DarkTurquoise;
-}
-svg.col-z {
-  border-color: CadetBlue;
+span.svg-inside + span.svg-inside {
+  margin-left: -1px;
 }
 
 svg.primitive-selected {
