@@ -2,28 +2,24 @@ var Dat = require('dat-node');
 var mkdirp = require('mkdirp');
 
 var key;
-var path = './dat-archive';
+var path = './.data/dat-archive';
 mkdirp.sync(path);
 
-Dat(path, {}, function(err, dat) {
+Dat(path, {}, function (err, dat) {
   if (err) {
     console.log('DAT ERR', err);
     return;
   }
 
-  // Join the network
-  var network = dat.joinNetwork({})
-  network.swarm     // hyperdiscovery
-  network.connected // number of connected peers
+  // 2. Import the files
+  dat.importFiles({ watch: true });
 
+  // 3. Share the files on the network!
+  dat.joinNetwork()
+  // (And share the link)
   key = dat.key.toString('hex'); // global
-  console.log('Dat key: dat://' + key);
+  console.log('My Dat link is: dat://', key);
 
-  var importer = dat.importFiles({watch : true},
-                                 (err, res) => console.log('dat imported'));
-
-  importer.on('file watch event',
-              (args) => console.log('Dat fs event: ' + args.path));
 });
 
-module.exports = {key, path};
+module.exports = { key, path };
