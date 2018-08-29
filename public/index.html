@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="ja">
-<head>
-<title>KanjiBreak</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<link rel="stylesheet" type="text/css" href="main.css">
-<link rel="stylesheet" type="text/css" href="bulma.css">
 
-<script src="https://cdn.auth0.com/js/lock/10.9.1/lock.min.js"></script>
+<head>
+  <title>KanjiBreak</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" type="text/css" href="main.css">
+  <link rel="stylesheet" type="text/css" href="bulma.css">
+  <script src="https://cdn.auth0.com/js/lock/11.9.0/lock.min.js"></script>
 </head>
 
 <section class="hero is-primary is-bold">
@@ -35,7 +35,8 @@
             <a href="export.html">Export</a>
           </li>
         </ul>
-      </nav></div>
+      </nav>
+    </div>
   </div>
 </section>
 
@@ -46,7 +47,7 @@
   let node = document.getElementById('main');
   let app = Elm.Main.embed(node);
 
-  app.ports.login.subscribe(function(word) {
+  app.ports.login.subscribe(function (word) {
     lock.show();
   });
 </script>
