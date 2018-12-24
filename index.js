@@ -1,4 +1,19 @@
 "use strict";
+/*
+First, download KanjiVG https://github.com/KanjiVG/kanjivg/releases and unzip it
+into this directory.
+
+Run
+```
+$ node index.js
+```
+
+Then start the project per README.md
+
+If you change or add primitives, you'll probably have to muck with deps.db in
+SQLite console.
+*/
+var KANJIVG_PATH = "./kanji/";
 var fs = require('fs');
 
 var leftpad = (str, desiredLen, padChar) =>
@@ -6,7 +21,7 @@ var leftpad = (str, desiredLen, padChar) =>
 
 function character2svg(char) {
   const fname =
-      '../kanji/' + leftpad(char.charCodeAt(0).toString(16), 5, '0') + '.svg';
+      KANJIVG_PATH + leftpad(char.charCodeAt(0).toString(16), 5, '0') + '.svg';
   return filename2svg(fname, char);
 }
 
@@ -179,7 +194,7 @@ columns.i[13] = charRangeToSVG('勤', '1-10');
 columns.i[12] = charRangeToSVG('毒', '1-4');
 columns.i[18] = charRangeToSVG('差', '1-7');
 
-headString('j', '木,釆,喿,林,麻,本,未,末,朮,米,束,東');
+headString('j', '木,采,喿,林,麻,本,未,末,朮,米,束,東');
 columns.j[2] = charRangeToSVG('操', '4-16')
 
 headString('k', '卉,开,廾,廿,革,甘,某,其,井,龷,昔,共');
